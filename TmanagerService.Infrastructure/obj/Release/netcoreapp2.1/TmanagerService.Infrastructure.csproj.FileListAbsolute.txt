@@ -1,0 +1,12 @@
+C:\Users\hdthuan\Downloads\HoDangThuan\TmanagerService-api-master\TmanagerService.Infrastructure\bin\Release\netcoreapp2.1\TmanagerService.Infrastructure.deps.json
+C:\Users\hdthuan\Downloads\HoDangThuan\TmanagerService-api-master\TmanagerService.Infrastructure\bin\Release\netcoreapp2.1\TmanagerService.Infrastructure.dll
+C:\Users\hdthuan\Downloads\HoDangThuan\TmanagerService-api-master\TmanagerService.Infrastructure\bin\Release\netcoreapp2.1\TmanagerService.Infrastructure.pdb
+C:\Users\hdthuan\Downloads\HoDangThuan\TmanagerService-api-master\TmanagerService.Infrastructure\bin\Release\netcoreapp2.1\TmanagerService.Core.dll
+C:\Users\hdthuan\Downloads\HoDangThuan\TmanagerService-api-master\TmanagerService.Infrastructure\bin\Release\netcoreapp2.1\TmanagerService.Core.pdb
+C:\Users\hdthuan\Downloads\HoDangThuan\TmanagerService-api-master\TmanagerService.Infrastructure\obj\Release\netcoreapp2.1\TmanagerService.Infrastructure.csprojAssemblyReference.cache
+C:\Users\hdthuan\Downloads\HoDangThuan\TmanagerService-api-master\TmanagerService.Infrastructure\obj\Release\netcoreapp2.1\TmanagerService.Infrastructure.csproj.CoreCompileInputs.cache
+C:\Users\hdthuan\Downloads\HoDangThuan\TmanagerService-api-master\TmanagerService.Infrastructure\obj\Release\netcoreapp2.1\TmanagerService.Infrastructure.AssemblyInfoInputs.cache
+C:\Users\hdthuan\Downloads\HoDangThuan\TmanagerService-api-master\TmanagerService.Infrastructure\obj\Release\netcoreapp2.1\TmanagerService.Infrastructure.AssemblyInfo.cs
+C:\Users\hdthuan\Downloads\HoDangThuan\TmanagerService-api-master\TmanagerService.Infrastructure\obj\Release\netcoreapp2.1\TmanagerService.Infrastructure.csproj.CopyComplete
+C:\Users\hdthuan\Downloads\HoDangThuan\TmanagerService-api-master\TmanagerService.Infrastructure\obj\Release\netcoreapp2.1\TmanagerService.Infrastructure.dll
+C:\Users\hdthuan\Downloads\HoDangThuan\TmanagerService-api-master\TmanagerService.Infrastructure\obj\Release\netcoreapp2.1\TmanagerService.Infrastructure.pdb
