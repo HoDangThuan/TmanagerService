@@ -15,3 +15,4 @@ B:\HoDangThuan\TmanagerService-api-master\TmanagerService.Core\obj\Debug\netcore
 B:\HoDangThuan\TmanagerService-api-master\TmanagerService.Core\obj\Debug\netcoreapp2.1\TmanagerService.Core.AssemblyInfo.cs
 B:\HoDangThuan\TmanagerService-api-master\TmanagerService.Core\obj\Debug\netcoreapp2.1\TmanagerService.Core.dll
 B:\HoDangThuan\TmanagerService-api-master\TmanagerService.Core\obj\Debug\netcoreapp2.1\TmanagerService.Core.pdb
+C:\Users\hdthuan\Downloads\HoDangThuan\TmanagerService-api-master\TmanagerService.Core\obj\Debug\netcoreapp2.1\TmanagerService.Core.csprojAssemblyReference.cache

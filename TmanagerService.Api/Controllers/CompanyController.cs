@@ -151,7 +151,7 @@ namespace TmanagerService.Api.Controllers
             var lstCompany = (from company in _context.Companys
                               where
                                 (curUser.Role == RoleValues.Admin.ToDescription() && company.AdminId == curUser.Id) ||
-                                (curUser.Role == RoleValues.Supervisor.ToDescription() && company.AdminId == curUser.AdminId && !company.IsDepartmentOfConstruction && !company.Status)
+                                (curUser.Role == RoleValues.Supervisor.ToDescription() && company.AdminId == curUser.AdminId && !company.IsDepartmentOfConstruction && company.Status)
                               orderby company.IsDepartmentOfConstruction descending
                               select new CompanyReturn
                               {
@@ -162,7 +162,6 @@ namespace TmanagerService.Api.Controllers
                               }).ToList();
             return Ok(lstCompany);
         }
-
 
     }
 }
