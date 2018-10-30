@@ -241,7 +241,7 @@ namespace TmanagerService.Api.Controllers
         public async Task<ActionResult> GetRequestAsync()
         {
             ApplicationUser curUser = await _userManager.GetUserAsync(HttpContext.User);
-            List<ListviewRequest> result = new List<ListviewRequest>();            
+            List<ReturnRequest> result = new List<ReturnRequest>();            
             if ( curUser.Role == RoleValues.Admin.ToDescription() )
             {
                 List<string> listCompany = (from company in _context.Companys
@@ -249,57 +249,80 @@ namespace TmanagerService.Api.Controllers
                                             select company.Id).ToList();
                 result = (from request in _context.Requests
                           where listCompany.Contains(request.CompanyId)
-                          select new ListviewRequest
+                          select new ReturnRequest
                           {
                               Id = request.Id,
-                              Content = request.Content,
                               Address = request.Address,
                               Latlng_latitude = request.Latlng_latitude,
                               Latlng_longitude = request.Latlng_longitude,
                               SupervisorId = request.SupervisorId,
+                              RepairPersonId = request.RepairPersonId,
+                              Content = request.Content,
+                              Status = request.Status,
                               TimeBeginRequest = request.TimeBeginRequest,
                               TimeReceiveRequest = request.TimeReceiveRequest,
                               TimeFinish = request.TimeFinish,
                               TimeConfirm = request.TimeConfirm,
-                              PictureRequest = String_List.ToList(request.PictureRequest)
+                              PictureRequest = String_List.ToList(request.PictureRequest),
+                              PictureFinish = String_List.ToList(request.PictureFinish),
+                              Note = request.Note
                           }).ToList();
             }
             if (curUser.Role == RoleValues.RepairPerson.ToDescription())
             {
                 result = (from request in _context.Requests
                           where request.CompanyId == curUser.CompanyId
-                          select new ListviewRequest
+                          select new ReturnRequest
                           {
                               Id = request.Id,
-                              Content = request.Content,
                               Address = request.Address,
                               Latlng_latitude = request.Latlng_latitude,
                               Latlng_longitude = request.Latlng_longitude,
                               SupervisorId = request.SupervisorId,
+                              RepairPersonId = request.RepairPersonId,
+                              Content = request.Content,
+                              Status = request.Status,
                               TimeBeginRequest = request.TimeBeginRequest,
                               TimeReceiveRequest = request.TimeReceiveRequest,
                               TimeFinish = request.TimeFinish,
                               TimeConfirm = request.TimeConfirm,
-                              PictureRequest = String_List.ToList(request.PictureRequest)
+                              PictureRequest = String_List.ToList(request.PictureRequest),
+                              PictureFinish = String_List.ToList(request.PictureFinish),
+                              Note = request.Note
+                              //Id = request.Id,
+                              //Content = request.Content,
+                              //Address = request.Address,
+                              //Latlng_latitude = request.Latlng_latitude,
+                              //Latlng_longitude = request.Latlng_longitude,
+                              //SupervisorId = request.SupervisorId,
+                              //TimeBeginRequest = request.TimeBeginRequest,
+                              //TimeReceiveRequest = request.TimeReceiveRequest,
+                              //TimeFinish = request.TimeFinish,
+                              //TimeConfirm = request.TimeConfirm,
+                              //PictureRequest = String_List.ToList(request.PictureRequest)
                           }).ToList();
             }
             if (curUser.Role == RoleValues.Supervisor.ToDescription())
             {
                 result = (from request in _context.Requests
                           where request.SupervisorId == curUser.Id
-                          select new ListviewRequest
+                          select new ReturnRequest
                           {
                               Id = request.Id,
-                              Content = request.Content,
                               Address = request.Address,
                               Latlng_latitude = request.Latlng_latitude,
                               Latlng_longitude = request.Latlng_longitude,
                               SupervisorId = request.SupervisorId,
+                              RepairPersonId = request.RepairPersonId,
+                              Content = request.Content,
+                              Status = request.Status,
                               TimeBeginRequest = request.TimeBeginRequest,
                               TimeReceiveRequest = request.TimeReceiveRequest,
                               TimeFinish = request.TimeFinish,
                               TimeConfirm = request.TimeConfirm,
-                              PictureRequest = String_List.ToList(request.PictureRequest)
+                              PictureRequest = String_List.ToList(request.PictureRequest),
+                              PictureFinish = String_List.ToList(request.PictureFinish),
+                              Note = request.Note
                           }).ToList();
             }
             return Ok(result);
