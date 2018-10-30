@@ -4,9 +4,9 @@ namespace TmanagerService.Core.Enums
 {
     public enum Gender
     {
-        [Description("Nữ")]
+        [Description("Female")]
         Female = 0,
-        [Description("Nam")]
+        [Description("Male")]
         Male = 1
     }
 }

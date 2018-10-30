@@ -163,5 +163,32 @@ namespace TmanagerService.Api.Controllers
             return Ok(lstCompany);
         }
 
+        [HttpPut("ChangeInformationCompany")]
+        [Authorize(Roles = "Admin")]
+        public async Task<ActionResult> ChangeInformationCompany([FromBody] ChangeInformationCompanyModel changeInformationCompanyModel)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState.GetErrors());
+            }
+
+            try
+            {
+                Company company = _context.Companys.FirstOrDefault(c => c.Id == changeInformationCompanyModel.CompanyId);
+                if (changeInformationCompanyModel.Address != null)
+                    company.Address = changeInformationCompanyModel.Address;
+                if (changeInformationCompanyModel.Name != null)
+                    company.Name = changeInformationCompanyModel.Name;
+
+                _context.Companys.Update(company);
+                await _context.SaveChangesAsync();
+                return Ok(true);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex);
+            }
+        }
+
     }
 }

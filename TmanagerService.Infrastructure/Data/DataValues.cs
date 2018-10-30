@@ -110,15 +110,15 @@ namespace TmanagerService.Infrastructure.Data
             DateTime now = DateTime.Now;
             return new List<Request>()
             {
-                new Request { Content = "ổ gà có trứng gà", PictureRequest = "http://res.cloudinary.com/dj9j7j4sf/image/upload/v1540364432/uutyqlzzazm7hpxwezn4.jpg, http://res.cloudinary.com/dj9j7j4sf/image/upload/v1540364433/tx0cixiggovadderpmdp.jpg",
-                PictureFinish = "http://res.cloudinary.com/dj9j7j4sf/image/upload/v1540364432/uutyqlzzazm7hpxwezn4.jpg, http://res.cloudinary.com/dj9j7j4sf/image/upload/v1540364433/tx0cixiggovadderpmdp.jpg",
+                new Request { Content = "ổ gà có trứng gà", PictureRequest = "http://res.cloudinary.com/dj9j7j4sf/image/upload/v1540364432/uutyqlzzazm7hpxwezn4.jpg,NStr~| http://res.cloudinary.com/dj9j7j4sf/image/upload/v1540364433/tx0cixiggovadderpmdp.jpg",
+                PictureFinish = "http://res.cloudinary.com/dj9j7j4sf/image/upload/v1540364432/uutyqlzzazm7hpxwezn4.jpg,NStr~| http://res.cloudinary.com/dj9j7j4sf/image/upload/v1540364433/tx0cixiggovadderpmdp.jpg",
                 Latlng_latitude = 16.047194, Latlng_longitude = 108.211754, Supervisor = supervisor, RepairPerson = repairPerson,
                 Address="403 Đường Trưng Nữ Vương, Phường Hòa Thuận Tây, Quận Hải Châu, Thành Phố Đà Nẵng, Hòa Thuận Nam, Hải Châu, Đà Nẵng 550000, Việt Nam",
                 Status = RequestStatus.Approved.ToDescription(), Company = company,
                 TimeBeginRequest =  now.AddSeconds(-2563125), TimeReceiveRequest = now.AddSeconds(-2043125),
                 TimeFinish = now.AddSeconds(-563425), TimeConfirm = now.AddSeconds(-253125) },
-                new Request { Content = "ổ vịt, ổ trâu, ổ khủng long", PictureRequest = "http://res.cloudinary.com/dj9j7j4sf/image/upload/v1540364432/uutyqlzzazm7hpxwezn4.jpg, http://res.cloudinary.com/dj9j7j4sf/image/upload/v1540364433/tx0cixiggovadderpmdp.jpg",
-                PictureFinish = "http://res.cloudinary.com/dj9j7j4sf/image/upload/v1540364432/uutyqlzzazm7hpxwezn4.jpg, http://res.cloudinary.com/dj9j7j4sf/image/upload/v1540364433/tx0cixiggovadderpmdp.jpg",
+                new Request { Content = "ổ vịt, ổ trâu, ổ khủng long", PictureRequest = "http://res.cloudinary.com/dj9j7j4sf/image/upload/v1540364432/uutyqlzzazm7hpxwezn4.jpg,NStr~| http://res.cloudinary.com/dj9j7j4sf/image/upload/v1540364433/tx0cixiggovadderpmdp.jpg",
+                PictureFinish = "http://res.cloudinary.com/dj9j7j4sf/image/upload/v1540364432/uutyqlzzazm7hpxwezn4.jpg,NStr~| http://res.cloudinary.com/dj9j7j4sf/image/upload/v1540364433/tx0cixiggovadderpmdp.jpg",
                 Latlng_latitude = 16.041583, Latlng_longitude = 108.211631, Supervisor = supervisor, RepairPerson = repairPerson,
                 Address="86-118 Lương Nhữ Hộc, Hoà Cường Bắc, Hải Châu, Đà Nẵng 550000, Việt Nam",
                 Status = RequestStatus.Approved.ToDescription(), Company = company,
