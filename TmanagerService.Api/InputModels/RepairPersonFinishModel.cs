@@ -1,12 +1,14 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.AspNetCore.Http;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace TmanagerService.Api.InputModels
 {
     public class RepairPersonFinishModel
     {
         [Required]
-        public string RequestId;
+        public string RequestId { get; set; }
         [Required]
-        public string ListPictureFinish;
+        public List<IFormFile> ListPictureFinish { get; set; }
     }
 }

@@ -2,7 +2,7 @@
 
 namespace TmanagerService.Core.Enums
 {
-    public enum Role
+    public enum RoleValues
     {
         [Description("Admin")]
         Admin = 1,

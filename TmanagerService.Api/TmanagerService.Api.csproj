@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.1</TargetFramework>
-    <DockerTargetOS>Windows</DockerTargetOS>
+    <DockerTargetOS>Linux</DockerTargetOS>
     <UserSecretsId>4c62caef-a676-471c-9827-5b837a495580</UserSecretsId>
   </PropertyGroup>
 
@@ -18,10 +18,6 @@
   <ItemGroup>
     <ProjectReference Include="..\TmanagerService.Core\TmanagerService.Core.csproj" />
     <ProjectReference Include="..\TmanagerService.Infrastructure\TmanagerService.Infrastructure.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Identity\" />
   </ItemGroup>
 
 </Project>

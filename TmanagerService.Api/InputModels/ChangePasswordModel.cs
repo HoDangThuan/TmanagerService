@@ -2,7 +2,7 @@
 
 namespace TmanagerService.Api.InpuModels
 {
-    public class TmanagerResetPasswordModel
+    public class ChangePasswordModel
     {
         //[Required]
         //public string UserName { get; set; }

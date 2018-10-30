@@ -2,11 +2,12 @@
 
 namespace TmanagerService.Api.InputModels
 {
-    public class ChangeAreaUserModel
+    public class ForgotPasswordModel
     {
         [Required]
         public string UserName { get; set; }
         [Required]
-        public string Area { get; set; }
+        [EmailAddress]
+        public string Email { get; set; }
     }
 }

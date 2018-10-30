@@ -2,10 +2,12 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using TmanagerService.Api.App_Start;
+using TmanagerService.Api.Models;
 using TmanagerService.Core.Entities;
 using TmanagerService.Infrastructure.Data;
 
@@ -30,6 +32,16 @@ namespace TmanagerService.Api
                 options.MinimumSameSitePolicy = SameSiteMode.None;
             });
 
+            services.AddTransient<IEmailSender, EmailSender>(i =>
+                new EmailSender(
+                    Configuration["EmailSender:Host"],
+                    Configuration.GetValue<int>("EmailSender:Port"),
+                    Configuration.GetValue<bool>("EmailSender:EnableSSL"),
+                    Configuration["EmailSender:UserName"],
+                    Configuration["EmailSender:Password"]
+                )
+            );
+
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
             
             //services.AddMvc(config =>
@@ -42,7 +54,8 @@ namespace TmanagerService.Api
 
             services.AddDbContext<TmanagerServiceContext>(TmanagerServiceContextConfig.Config);
             services.AddIdentity<ApplicationUser, IdentityRole>(IdentityConfig.Config)
-                .AddEntityFrameworkStores<TmanagerServiceContext>();
+                .AddEntityFrameworkStores<TmanagerServiceContext>()
+                .AddDefaultTokenProviders();
 
             services.AddAuthentication(AuthenticationConfig.Config)
                 .AddJwtBearer(JwtBearerConfig.Config);

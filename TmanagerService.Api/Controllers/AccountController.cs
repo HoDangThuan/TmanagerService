@@ -1,9 +1,14 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
+using TmanagerService.Api.Identity;
 using TmanagerService.Api.InpuModels;
 using TmanagerService.Api.InputModels;
 using TmanagerService.Api.Models;
@@ -18,121 +23,24 @@ namespace TmanagerService.Api.Controllers
     [Route("api/Account")]
     public class AccountController : ControllerBase
     {
+        private readonly IEmailSender _emailSender;
         private readonly TmanagerServiceContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
+        //private readonly HttpContext _httpContext;
         public AccountController(
             SignInManager<ApplicationUser> signInManager,
             UserManager<ApplicationUser> userManager,
+            IEmailSender emailSender,
+            //HttpContext httpContext,
             TmanagerServiceContext context
             )
         {
             _signInManager = signInManager;
             _userManager = userManager;
             _context = context;
-        }
-
-        [HttpPut("ChangeInformationUser")]
-        [Authorize]
-        public async Task<ActionResult> ChangeInformationUser([FromBody] ChangeInformationUserModel changeInformationUserModel)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState.GetErrors());
-            }
-
-            ApplicationUser curUser = await _userManager.GetUserAsync(HttpContext.User);
-            try
-            {
-                if (changeInformationUserModel.Address != null)
-                    curUser.Address = changeInformationUserModel.Address;
-                if (changeInformationUserModel.DateOfBirth != null)
-                    curUser.DateOfBirth = changeInformationUserModel.DateOfBirth;
-                if (changeInformationUserModel.Email != null)
-                    curUser.Email = changeInformationUserModel.Email;
-                if (changeInformationUserModel.FirstName != null)
-                    curUser.FirstName = changeInformationUserModel.FirstName;
-                if (changeInformationUserModel.LastName != null)
-                    curUser.LastName = changeInformationUserModel.LastName;
-                if (changeInformationUserModel.PhoneNumber != null)
-                    curUser.PhoneNumber = changeInformationUserModel.PhoneNumber;
-                if (changeInformationUserModel.Gender != null)
-                    curUser.Gender = changeInformationUserModel.Gender;
-
-                await _userManager.UpdateAsync(curUser);
-                await _context.SaveChangesAsync();
-                return Ok(true);
-            }
-            catch (Exception ex)
-            {
-                throw new ApplicationException(string.Join(Environment.NewLine, ex));
-            }
-        }
-
-        [HttpPut("ChangeAreaUser")]
-        [Authorize(Roles = "Admin")]
-        public async Task<ActionResult> ChangeAreaUser([FromBody] ChangeAreaUserModel changeAreaUserModel)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState.GetErrors());
-            }
-            ApplicationUser user = await _userManager.FindByNameAsync(changeAreaUserModel.UserName);
-            if(user != null)
-            {
-                try
-                {
-                    user.Area = changeAreaUserModel.Area;
-                    await _userManager.UpdateAsync(user);
-                    await _context.SaveChangesAsync();
-                    return Ok(true);
-                }
-                catch (Exception ex)
-                {
-                    throw new ApplicationException(string.Join(Environment.NewLine, ex));
-                }
-            }
-
-            throw new ApplicationException(string.Join(Environment.NewLine, changeAreaUserModel.UserName + " does not exist"));
-        }
-
-        [HttpGet("GetNameUser")]
-        [Authorize]
-        public async Task<ActionResult> GetNameUser()
-        {
-            ApplicationUser curUser = await _userManager.GetUserAsync(HttpContext.User);
-
-            return Ok(new
-            {
-                userName = curUser.UserName,
-                firstName = curUser.FirstName,
-                lastName = curUser.LastName,
-                position = curUser.Position,
-                area = curUser.Area
-            });
-        }
-
-        [HttpGet("GetUserInformation")]
-        [Authorize]
-        public async Task<ActionResult> GetUserInformation()
-        {
-            ApplicationUser curUser = await _userManager.GetUserAsync(HttpContext.User);
-
-            return Ok(new
-            {
-                userName = curUser.UserName,
-                firstName = curUser.FirstName,
-                lastName = curUser.LastName,
-                address = curUser.Address,
-                position = curUser.Position,
-                phoneNumber = curUser.PhoneNumber,
-                email = curUser.Email,
-                are = curUser.Area,
-                dateOfBirth = curUser.DateOfBirth,
-                gender = curUser.Gender,
-                note = curUser.Note,
-                isEnabled = curUser.IsEnabled
-            });
+            _emailSender = emailSender;
+            //_httpContext = httpContext;
         }
 
         [HttpPost("Login")]
@@ -157,14 +65,14 @@ namespace TmanagerService.Api.Controllers
             }
             if (result.RequiresTwoFactor)
             {
-                throw new ApplicationException(string.Join(Environment.NewLine, "Requires Two Factor"));
+                return BadRequest(result.RequiresTwoFactor);
             }
             if (result.IsLockedOut)
             {
-                throw new ApplicationException(string.Join(Environment.NewLine, "Account Is Locked Out"));
+                return BadRequest(result.IsLockedOut);
             }
 
-            throw new ApplicationException(string.Join(Environment.NewLine, "Password Failed"));
+            return BadRequest();
         }
 
         [HttpPost("Register")]
@@ -176,168 +84,370 @@ namespace TmanagerService.Api.Controllers
                 return BadRequest(ModelState.GetErrors());
             }
 
-            if(registerModel.Password != registerModel.PasswordConfirm)
+            if (await _userManager.FindByNameAsync(registerModel.UserName) != null)
             {
-                throw new ApplicationException(string.Join(Environment.NewLine, "Password Confirm Failed"));
-            }
-            var usr = await _userManager.FindByNameAsync(registerModel.UserName);
-            if (usr != null)
-            {
-                throw new ApplicationException(string.Join(Environment.NewLine, "UserName already exists"));
+                return BadRequest("UserName already exists");
             }
 
-            var user = new ApplicationUser
+            if (await _userManager.FindByEmailAsync(registerModel.Email) != null)
             {
-                UserName = registerModel.UserName,
-                FirstName = registerModel.FirstName,
-                LastName = registerModel.LastName,
-                Email = registerModel.Email,
-                IsEnabled = true,
-                DateOfBirth = registerModel.DateOfBirth,
-                Gender = registerModel.Gender,
-                PhoneNumber = registerModel.PhoneNumber,
-                Address = registerModel.Address,
-                Position = registerModel.Position,
-                Area = registerModel.Area,
-                Note = registerModel.Note,
-                //Confirm Email, PhoneNumber để bổ sung sau
-                EmailConfirmed = true
-            };
-
-            var result = await _userManager.CreateAsync(user, registerModel.Password);
-            if (result.Succeeded)
+                return BadRequest("Email already exists");
+            }
+            try
             {
-                var userClaim = await _userManager.GetClaimsAsync(user);
+                if (_context.Users.Select(u => u.PhoneNumber.Equals(registerModel.PhoneNumber)).FirstOrDefault())
+                    return BadRequest("Phone number already exists");
 
-                if (registerModel.Position==Role.RepairPerson.ToDescription())
-                {
-                    var repairPersonRoleString = Role.RepairPerson.ToDescription();
-                    var repairPersonClaimString = Claim.ReceiveRequest.ToDescription();
-
-                    await _userManager.CreateAsync(user, DataValues.default_user_password);
-
-                    if (!await _userManager.IsInRoleAsync(user, repairPersonRoleString))
-                    {
-                        await _userManager.AddToRoleAsync(user, repairPersonRoleString);
-                    }
-
-                    if (!userClaim.Any(x => x.Type == repairPersonClaimString))
-                    {
-                        await _userManager.AddClaimAsync(user, new System.Security.Claims.Claim(repairPersonClaimString, true.ToString()));
-                    }
-                }
+                ApplicationUser curUser = await _userManager.GetUserAsync(HttpContext.User);
+                var company = _context.Companys.FirstOrDefault(c => c.Id == registerModel.CompanyId);
+                if (company == null)
+                    return BadRequest("Company failed");
+                string role;
+                if (company.IsDepartmentOfConstruction)
+                    role = RoleValues.Supervisor.ToDescription();
                 else
+                    role = RoleValues.RepairPerson.ToDescription();
+                if (((Gender)registerModel.Gender).ToDescription() == null)
+                    return BadRequest("Gender required");
+                var user = new ApplicationUser
                 {
-                    var supervisorRoleString = Role.Supervisor.ToDescription();
-                    var supervisorClaimString = Claim.InsertRequest.ToDescription();
+                    UserName = registerModel.UserName,
+                    Email = registerModel.Email,
+                    PhoneNumber = registerModel.PhoneNumber,
+                    Company = company,
+                    Role = role,
+                    Gender = ((Gender)registerModel.Gender).ToDescription(),
+                    AdminId = curUser.Id,
+                    IsEnabled = true,
+                    EmailConfirmed = true
+                };
+                string passwordStr = RdmStrExtension.RandomString(9);
+                var result = await _userManager.CreateAsync(user, passwordStr);
+                if (result.Succeeded)
+                {
+                    var userClaim = await _userManager.GetClaimsAsync(user);
 
-                    if (!await _userManager.IsInRoleAsync(user, supervisorRoleString))
+                    if (user.Role == RoleValues.RepairPerson.ToDescription())
                     {
-                        await _userManager.AddToRoleAsync(user, supervisorRoleString);
+                        var repairPersonRoleString = RoleValues.RepairPerson.ToDescription();
+                        var repairPersonClaimString = Claim.ReceiveRequest.ToDescription();
+
+                        if (!await _userManager.IsInRoleAsync(user, repairPersonRoleString))
+                        {
+                            await _userManager.AddToRoleAsync(user, repairPersonRoleString);
+                        }
+
+                        if (!userClaim.Any(x => x.Type == repairPersonClaimString))
+                        {
+                            await _userManager.AddClaimAsync(user, new System.Security.Claims.Claim(repairPersonClaimString, true.ToString()));
+                        }
                     }
 
-                    if (!userClaim.Any(x => x.Type == supervisorClaimString))
+                    if (user.Role == RoleValues.Supervisor.ToDescription())
                     {
-                        await _userManager.AddClaimAsync(user, new System.Security.Claims.Claim(supervisorClaimString, true.ToString()));
+                        var supervisorRoleString = RoleValues.Supervisor.ToDescription();
+                        var supervisorClaimString = Claim.InsertRequest.ToDescription();
+
+                        if (!await _userManager.IsInRoleAsync(user, supervisorRoleString))
+                        {
+                            await _userManager.AddToRoleAsync(user, supervisorRoleString);
+                        }
+
+                        if (!userClaim.Any(x => x.Type == supervisorClaimString))
+                        {
+                            await _userManager.AddClaimAsync(user, new System.Security.Claims.Claim(supervisorClaimString, true.ToString()));
+                        }
                     }
+
+                    string subject = "Welcome to Tmanager";
+                    string message = "Congratulations and thanks for signing up!"
+                        + "<br/>Account Details: <br/> Email: " + registerModel.Email
+                        + "<br/> User Name: " + registerModel.UserName
+                        + "<br/> Default Password: " + passwordStr;
+                    await _emailSender.SendEmailAsync(registerModel.Email, subject, message);
+
+                    return Ok(true);
                 }
 
-                string tokenResponse = await TokenProvider.ExecuteAsync(user, _context, _userManager);
-                
-                return Ok(new { token = tokenResponse });
+                return BadRequest(result.Errors);
             }
-
-            throw new ApplicationException(string.Join(Environment.NewLine, result.Errors));
+            catch (Exception ex)
+            {
+                return BadRequest(ex);
+            }
         }
-               
-        //[HttpPost("RegisterRepairPerson")]
-        //[Authorize(Roles = "Admin")]
-        //public async Task<IActionResult> RegisterRepairPerson(RegisterModel input)
-        //{
-        //    if (!ModelState.IsValid)
-        //    {
-        //        return BadRequest(ModelState.GetErrors());
-        //    }
-        //    if (input.Password != input.PasswordConfirm)
-        //    {
-        //        throw new ApplicationException(string.Join(Environment.NewLine, "Password Confirm Failed"));
-        //    }
-        //    var user = new ApplicationUser
-        //    {
-        //        UserName = input.Email,
-        //        FirstName = input.FirstName,
-        //        LastName = input.LastName,
-        //        Email = input.Email,
-        //        IsEnabled = true,
-        //        DateOfBirth = input.DateOfBirth,
-        //        Gender = input.Gender,
-        //        PhoneNumber = input.PhoneNumber,
-        //        Address = input.Address,
-        //        Position = input.Position,
-        //        Note = input.Note,
-        //        //Confirm Email, PhoneNumber để bổ sung sau
-        //        EmailConfirmed = true
-        //    };
-
-        //    var result = await _userManager.CreateAsync(user, input.Password);
-        //    if (result.Succeeded)
-        //    {
-        //        var repairPersonRoleString = Role.RepairPerson.ToDescription();
-        //        var repairPersonClaimString = Claim.ReceiveRequest.ToDescription();
-        //        var userClaim = await _userManager.GetClaimsAsync(user);
-
-        //        await _userManager.CreateAsync(user, DataValues.default_user_password);
-                    
-        //        if (!await _userManager.IsInRoleAsync(user, repairPersonRoleString))
-        //        {
-        //            await _userManager.AddToRoleAsync(user, repairPersonRoleString);
-        //        }
-
-        //        if (!userClaim.Any(x => x.Type == repairPersonClaimString))
-        //        {
-        //            await _userManager.AddClaimAsync(user, new System.Security.Claims.Claim(repairPersonClaimString, true.ToString()));
-        //        }
-
-        //        return Ok(TokenProvider.ExecuteAsync(user, _db, _userManager));
-        //    }
-
-        //    throw new ApplicationException(string.Join(Environment.NewLine, result.Errors));
-        //}
 
         [HttpPost("ChangePassword")]
         [Authorize]
-        public async Task<IActionResult> ChangePassword([FromBody] TmanagerResetPasswordModel resetPasswordModel)
+        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordModel changePasswordModel)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState.GetErrors());
             }
 
-            //var user = await _userManager.FindByNameAsync(curUser.UserName);
-            //if (user == null || !(_userManager.IsEmailConfirmedAsync(user).Result))
-            //{
-            //    return BadRequest();
-            //}
-
-            if(resetPasswordModel.NewPassword != resetPasswordModel.NewPasswordConfirm)
+            if (changePasswordModel.NewPassword != changePasswordModel.NewPasswordConfirm)
             {
-                throw new ApplicationException(string.Join(Environment.NewLine, "Password confirm failed"));
+                return BadRequest("Password confirm failed");
             }
 
-            if (resetPasswordModel.NewPassword == resetPasswordModel.CurrentPassword)
+            if (changePasswordModel.NewPassword == changePasswordModel.CurrentPassword)
             {
-                throw new ApplicationException(string.Join(Environment.NewLine, "New password duplicate current password"));
+                return BadRequest("New password duplicate current password");
             }
 
             ApplicationUser curUser = await _userManager.GetUserAsync(HttpContext.User);
 
-            var result = await _userManager.ChangePasswordAsync(curUser, resetPasswordModel.CurrentPassword, resetPasswordModel.NewPassword);
-            if(result.Succeeded)
+            var result = await _userManager.ChangePasswordAsync(curUser, changePasswordModel.CurrentPassword, changePasswordModel.NewPassword);
+            if (result.Succeeded)
             {
-                return Ok(true);
+                try
+                {
+                    DateTime now = DateTime.Now;
+                    string subject = "Change your Tmanager account password";
+                    string message = "Your account has changed <br/>Passwords for Tmanager account "
+                        + curUser.UserName + " has been changed to "
+                        + now.ToString("dd/MM/yyyy HH:mm:ss.fff", CultureInfo.InvariantCulture);
+                    await _emailSender.SendEmailAsync(curUser.Email, subject, message);
+                    return Ok(true);
+                }
+                catch (Exception ex)
+                {
+                    return BadRequest(ex);
+                }
             }
             else
-                throw new ApplicationException(string.Join(Environment.NewLine, result.Errors));
+                return BadRequest(result.Errors);
         }
+
+        [HttpPost("ForgotPassword")]
+        [AllowAnonymous]
+        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordModel forgotPasswordModel)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState.GetErrors());
+            }
+
+            ApplicationUser user = await _userManager.FindByEmailAsync(forgotPasswordModel.Email);
+
+            if (user == null)
+                return BadRequest("Email does not exist");
+            if (!(_userManager.IsEmailConfirmedAsync(user).Result))
+                return BadRequest("Email does not active");
+            if (user.UserName != forgotPasswordModel.UserName)
+                return BadRequest("Account does not use this email");
+
+            try
+            {
+                var tokenRSPW = await _userManager.GeneratePasswordResetTokenAsync(user);
+
+                string passwordStr = RdmStrExtension.RandomString(9);
+                var result = await _userManager.ResetPasswordAsync(user, tokenRSPW, passwordStr);
+                if (result.Succeeded)
+                {
+                    string subject = "Forgot password Tmanager";
+                    string message = "New password of your account " + user.UserName + " : " + passwordStr;
+                    await _emailSender.SendEmailAsync(forgotPasswordModel.Email, subject, message);
+                    return Ok(true);
+                }
+                else
+                    return BadRequest(result.Errors);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex);
+            }
+        }
+
+        [HttpPut("ChangeInformationUser")]
+        [Authorize]
+        public async Task<ActionResult> ChangeInformationUser([FromBody] ChangeInformationUserModel changeInformationUserModel)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState.GetErrors());
+            }
+
+            ApplicationUser curUser = await _userManager.GetUserAsync(HttpContext.User);
+            try
+            {
+                if (changeInformationUserModel.Address != null)
+                    curUser.Address = changeInformationUserModel.Address;
+                if (changeInformationUserModel.DateOfBirth != null)
+                    curUser.DateOfBirth = changeInformationUserModel.DateOfBirth;
+                if (changeInformationUserModel.FirstName != null)
+                    curUser.FirstName = changeInformationUserModel.FirstName;
+                if (changeInformationUserModel.LastName != null)
+                    curUser.LastName = changeInformationUserModel.LastName;
+                if (changeInformationUserModel.PhoneNumber != null)
+                    curUser.PhoneNumber = changeInformationUserModel.PhoneNumber;
+
+                await _userManager.UpdateAsync(curUser);
+                await _context.SaveChangesAsync();
+                return Ok(true);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex);
+            }
+        }
+
+        [HttpGet("GetNameUser")]
+        [Authorize]
+        public async Task<ActionResult> GetNameUser()
+        {
+            ApplicationUser curUser = await _userManager.GetUserAsync(HttpContext.User);
+            return Ok(new
+            {
+                id = curUser.Id,
+                userName = curUser.UserName,
+                firstName = curUser.FirstName,
+                lastName = curUser.LastName,
+                position = curUser.Role,
+                //area = String_List.ToList(curUser.ListAreaWorkingId)
+            });
+        }
+
+        [HttpGet("GetUserInformation")]
+        [Authorize]
+        public async Task<ActionResult> GetUserInformation()
+        {
+            ApplicationUser curUser = await _userManager.GetUserAsync(HttpContext.User);
+
+            if (!curUser.IsEnabled)
+                return BadRequest("Account blocked");
+            InformationUser infoUser = new InformationUser
+            {
+                Id = curUser.Id,
+                UserName = curUser.UserName,
+                FirstName = curUser.FirstName,
+                LastName = curUser.LastName,
+                Address = curUser.Address,
+                Role = curUser.Role,
+                PhoneNumber = curUser.PhoneNumber,
+                Email = curUser.Email,
+                //ListAreaWorking = GetListAreaWorkingInfo(curUser),
+                DateOfBirth = curUser.DateOfBirth.ToString("dd-MM-yyyy"),
+                Gender = curUser.Gender,
+                IsEnabled = curUser.IsEnabled,
+                Note = curUser.Note
+            };
+            return Ok(infoUser);
+        }
+
+        [HttpGet("GetPositionByAdmin")]
+        [Authorize(Roles = "Admin")]
+        public ActionResult GetPositionByAdmin()
+        {
+            var roleValues = Enum.GetValues(typeof(RoleValues));
+            List<string> result = new List<string>();
+            foreach (var role in roleValues)
+                if (role.ToString() != RoleValues.Admin.ToDescription())
+                    result.Add(role.ToString());
+            return Ok(result);
+        }
+
+        [HttpGet("GetStaffByAdmin")]
+        [Authorize(Roles = "Admin")]
+        public async Task<ActionResult> GetStaffByAdmin()
+        {
+            ApplicationUser curUser = await _userManager.GetUserAsync(HttpContext.User);
+            List<ApplicationUser> lstStf = (from us in _context.Users
+                                            where us.AdminId == curUser.Id
+                                            select us).ToList();
+            List<InformationUser> listStaff = new List<InformationUser>();
+            foreach (var staff in lstStf)
+            {
+                if (staff != null)
+                    listStaff.Add(new InformationUser
+                    {
+                        Id = staff.Id,
+                        UserName = staff.UserName,
+                        FirstName = staff.FirstName,
+                        LastName = staff.LastName,
+                        Address = staff.Address,
+                        Role = staff.Role,
+                        PhoneNumber = staff.PhoneNumber,
+                        Email = staff.Email,
+                        //ListAreaWorking = GetListAreaWorkingInfo(staff),
+                        DateOfBirth = staff.DateOfBirth.ToString("dd-MM-yyyy"),
+                        Gender = staff.Gender,
+                        Note = staff.Note,
+                        IsEnabled = staff.IsEnabled
+                    });
+            }
+            return Ok(listStaff);
+        }
+
+        [HttpGet("GetStaffInfoById")]
+        [Authorize(Roles = "Admin")]
+        public async Task<ActionResult> GetStaffByAdmin(string staffId)
+        {
+            ApplicationUser staff = await _userManager.FindByIdAsync(staffId);
+            //List<AreaWorkingValues> listAreaWorking = new List<AreaWorkingValues>();
+            //AreaWorkingValues areaWorking = new AreaWorkingValues();
+            //foreach (var areaWorkingId in String_List.ToList(staff.ListAreaWorkingId))
+            //{
+            //    areaWorking = (from arW in _context.AreaWorkings
+            //                   where arW.Id == areaWorkingId
+            //                   select new AreaWorkingValues
+            //                   {
+            //                       AreaId = arW.Id,
+            //                       AdminId = arW.AdminId,
+            //                       AreaName = arW.AreaName,
+            //                       Status = arW.Status
+            //                   }).FirstOrDefault();
+            //    if (areaWorking != null)
+            //        listAreaWorking.Add(areaWorking);
+            //}
+            return Ok(new InformationUser
+            {
+                Id = staff.Id,
+                UserName = staff.UserName,
+                FirstName = staff.FirstName,
+                LastName = staff.LastName,
+                Address = staff.Address,
+                Role = staff.Role,
+                PhoneNumber = staff.PhoneNumber,
+                Email = staff.Email,
+                //ListAreaWorking = GetListAreaWorkingInfo(staff),
+                DateOfBirth = staff.DateOfBirth.ToString("dd-MM-yyyy"),
+                Gender = staff.Gender,
+                Note = staff.Note,
+                IsEnabled = staff.IsEnabled
+            });
+        }
+
+        //private List<AreaWorkingValues> GetListAreaWorkingInfo(ApplicationUser user)
+        //{
+        //    if (user.ListAreaWorkingId == null)
+        //        return null;
+        //    List<AreaWorkingValues> listAreaWorking = new List<AreaWorkingValues>();
+        //    AreaWorkingValues areaWorking = new AreaWorkingValues();
+        //    string adminRoleStr = RoleValues.Admin.ToDescription();
+        //    foreach (var areaWorkingId in String_List.ToList(user.ListAreaWorkingId))
+        //    {
+        //        areaWorking = (from arW in _context.AreaWorkings
+        //                       where arW.Id == areaWorkingId &&
+        //                            (
+        //                                (arW.Status && user.Role != adminRoleStr) ||
+        //                                (user.Role == adminRoleStr)
+        //                            )
+        //                       select new AreaWorkingValues
+        //                       {
+        //                           AreaId = arW.Id,
+        //                           AdminId = arW.AdminId,
+        //                           AreaName = arW.AreaName,
+        //                           Status = arW.Status
+        //                       }).FirstOrDefault();
+        //        if (areaWorking != null)
+        //            listAreaWorking.Add(areaWorking);
+        //    }
+        //    if (listAreaWorking.Count > 0)
+        //        return listAreaWorking;
+        //    return null;
+        //}
+
     }
 }

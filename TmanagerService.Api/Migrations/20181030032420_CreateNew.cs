@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace TmanagerService.Api.Migrations
 {
-    public partial class InitialCreateNew : Migration
+    public partial class CreateNew : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -23,38 +23,19 @@ namespace TmanagerService.Api.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "AspNetUsers",
+                name: "Companys",
                 columns: table => new
                 {
-                    Id = table.Column<string>(nullable: false),
-                    UserName = table.Column<string>(maxLength: 256, nullable: true),
-                    NormalizedUserName = table.Column<string>(maxLength: 256, nullable: true),
-                    Email = table.Column<string>(maxLength: 256, nullable: true),
-                    NormalizedEmail = table.Column<string>(maxLength: 256, nullable: true),
-                    EmailConfirmed = table.Column<bool>(nullable: false),
-                    PasswordHash = table.Column<string>(nullable: true),
-                    SecurityStamp = table.Column<string>(nullable: true),
-                    ConcurrencyStamp = table.Column<string>(nullable: true),
-                    PhoneNumber = table.Column<string>(nullable: true),
-                    PhoneNumberConfirmed = table.Column<bool>(nullable: false),
-                    TwoFactorEnabled = table.Column<bool>(nullable: false),
-                    LockoutEnd = table.Column<DateTimeOffset>(nullable: true),
-                    LockoutEnabled = table.Column<bool>(nullable: false),
-                    AccessFailedCount = table.Column<int>(nullable: false),
-                    FirstName = table.Column<string>(nullable: true),
-                    LastName = table.Column<string>(nullable: true),
-                    IsEnabled = table.Column<bool>(nullable: false),
-                    Token = table.Column<string>(nullable: true),
-                    DateOfBirth = table.Column<DateTime>(type: "date", nullable: false),
-                    Address = table.Column<string>(nullable: true),
-                    Gender = table.Column<string>(nullable: true),
-                    Position = table.Column<string>(nullable: true),
-                    Area = table.Column<string>(nullable: true),
-                    Note = table.Column<string>(nullable: true)
+                    Id = table.Column<string>(maxLength: 50, nullable: false),
+                    Name = table.Column<string>(maxLength: 150, nullable: true),
+                    Address = table.Column<string>(maxLength: 150, nullable: true),
+                    AdminId = table.Column<string>(nullable: true),
+                    IsDepartmentOfConstruction = table.Column<bool>(nullable: false),
+                    Status = table.Column<bool>(nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_AspNetUsers", x => x.Id);
+                    table.PrimaryKey("PK_Companys", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -76,6 +57,48 @@ namespace TmanagerService.Api.Migrations
                         principalTable: "AspNetRoles",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "AspNetUsers",
+                columns: table => new
+                {
+                    Id = table.Column<string>(nullable: false),
+                    UserName = table.Column<string>(maxLength: 256, nullable: true),
+                    NormalizedUserName = table.Column<string>(maxLength: 256, nullable: true),
+                    Email = table.Column<string>(maxLength: 256, nullable: true),
+                    NormalizedEmail = table.Column<string>(maxLength: 256, nullable: true),
+                    EmailConfirmed = table.Column<bool>(nullable: false),
+                    PasswordHash = table.Column<string>(nullable: true),
+                    SecurityStamp = table.Column<string>(nullable: true),
+                    ConcurrencyStamp = table.Column<string>(nullable: true),
+                    PhoneNumber = table.Column<string>(nullable: true),
+                    PhoneNumberConfirmed = table.Column<bool>(nullable: false),
+                    TwoFactorEnabled = table.Column<bool>(nullable: false),
+                    LockoutEnd = table.Column<DateTimeOffset>(nullable: true),
+                    LockoutEnabled = table.Column<bool>(nullable: false),
+                    AccessFailedCount = table.Column<int>(nullable: false),
+                    FirstName = table.Column<string>(maxLength: 15, nullable: true),
+                    LastName = table.Column<string>(maxLength: 150, nullable: true),
+                    IsEnabled = table.Column<bool>(nullable: false),
+                    Token = table.Column<string>(nullable: true),
+                    DateOfBirth = table.Column<DateTime>(type: "date", nullable: false),
+                    Address = table.Column<string>(maxLength: 150, nullable: true),
+                    Gender = table.Column<string>(maxLength: 6, nullable: true),
+                    Role = table.Column<string>(nullable: true),
+                    AdminId = table.Column<string>(nullable: true),
+                    CompanyId = table.Column<string>(nullable: true),
+                    Note = table.Column<string>(nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AspNetUsers", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_AspNetUsers_Companys_CompanyId",
+                        column: x => x.CompanyId,
+                        principalTable: "Companys",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -167,25 +190,34 @@ namespace TmanagerService.Api.Migrations
                 name: "Requests",
                 columns: table => new
                 {
-                    Id = table.Column<string>(nullable: false),
+                    Id = table.Column<string>(maxLength: 50, nullable: false),
                     Content = table.Column<string>(nullable: true),
                     Address = table.Column<string>(nullable: true),
-                    Latlng_latitude = table.Column<double>(nullable: false),
-                    Latlng_longitude = table.Column<double>(nullable: false),
-                    TimeBeginRequest = table.Column<DateTime>(nullable: false),
-                    TimeReceiveRequest = table.Column<DateTime>(nullable: false),
-                    TimeFinish = table.Column<DateTime>(nullable: false),
-                    TimeConfirm = table.Column<DateTime>(nullable: false),
+                    Latlng_latitude = table.Column<double>(nullable: true),
+                    Latlng_longitude = table.Column<double>(nullable: true),
+                    TimeBeginRequest = table.Column<DateTime>(nullable: true),
+                    TimeReceiveRequest = table.Column<DateTime>(nullable: true),
+                    TimeFinish = table.Column<DateTime>(nullable: true),
+                    TimeConfirm = table.Column<DateTime>(nullable: true),
                     PictureRequest = table.Column<string>(nullable: true),
                     PictureFinish = table.Column<string>(nullable: true),
-                    Status = table.Column<string>(nullable: true),
+                    Status = table.Column<string>(maxLength: 50, nullable: true),
                     SupervisorId = table.Column<string>(nullable: true),
+                    CompanyId = table.Column<string>(nullable: true),
                     RepairPersonId = table.Column<string>(nullable: true),
+                    ReportUserId = table.Column<string>(nullable: true),
+                    ReportContent = table.Column<string>(nullable: true),
                     Note = table.Column<string>(nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Requests", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Requests_Companys_CompanyId",
+                        column: x => x.CompanyId,
+                        principalTable: "Companys",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_Requests_AspNetUsers_RepairPersonId",
                         column: x => x.RepairPersonId,
@@ -228,6 +260,11 @@ namespace TmanagerService.Api.Migrations
                 column: "RoleId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_AspNetUsers_CompanyId",
+                table: "AspNetUsers",
+                column: "CompanyId");
+
+            migrationBuilder.CreateIndex(
                 name: "EmailIndex",
                 table: "AspNetUsers",
                 column: "NormalizedEmail");
@@ -238,6 +275,11 @@ namespace TmanagerService.Api.Migrations
                 column: "NormalizedUserName",
                 unique: true,
                 filter: "[NormalizedUserName] IS NOT NULL");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Requests_CompanyId",
+                table: "Requests",
+                column: "CompanyId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Requests_RepairPersonId",
@@ -275,6 +317,9 @@ namespace TmanagerService.Api.Migrations
 
             migrationBuilder.DropTable(
                 name: "AspNetUsers");
+
+            migrationBuilder.DropTable(
+                name: "Companys");
         }
     }
 }

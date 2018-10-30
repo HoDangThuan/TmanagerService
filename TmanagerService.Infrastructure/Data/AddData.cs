@@ -9,12 +9,12 @@ namespace TmanagerService.Infrastructure.Data
 {
     public class AddData
     {
-        public static async Task SeedRepairPerson(UserManager<ApplicationUser> userManager)
+        public static async Task SeedRepairPerson(TmanagerServiceContext dbContext, UserManager<ApplicationUser> userManager)
         {
-            var repairPersonRoleString = Role.RepairPerson.ToDescription();
+            var repairPersonRoleString = RoleValues.RepairPerson.ToDescription();
             var repairPersonClaimString = Claim.ReceiveRequest.ToDescription();
 
-            foreach (var user in DataValues.RepairPersonData())
+            foreach (var user in await DataValues.RepairPersonDataAsync(dbContext, userManager))
             {
                 if (await userManager.FindByNameAsync(user.UserName) == null)
                 {
@@ -31,16 +31,17 @@ namespace TmanagerService.Infrastructure.Data
                     {
                         await userManager.AddClaimAsync(user, new System.Security.Claims.Claim(repairPersonClaimString, true.ToString()));
                     }
+
                 }
             }
         }
 
-        public static async Task SeedSupervisor(UserManager<ApplicationUser> userManager)
+        public static async Task SeedSupervisor(TmanagerServiceContext dbContext, UserManager<ApplicationUser> userManager)
         {
-            var supervisorRoleString = Role.Supervisor.ToDescription();
+            var supervisorRoleString = RoleValues.Supervisor.ToDescription();
             var supervisorClaimString = Claim.InsertRequest.ToDescription();
 
-            foreach (var user in DataValues.SupervisorData())
+            foreach (var user in await DataValues.SupervisorDataAsync(dbContext, userManager))
             {
                 if (await userManager.FindByNameAsync(user.UserName) == null)
                 {
@@ -61,12 +62,12 @@ namespace TmanagerService.Infrastructure.Data
             }
         }
 
-        public static async Task SeedAdmin(UserManager<ApplicationUser> userManager)
+        public static async Task SeedAdmin(TmanagerServiceContext dbContext, UserManager<ApplicationUser> userManager)
         {
-            var adminRoleString = Role.Admin.ToDescription();
+            var adminRoleString = RoleValues.Admin.ToDescription();
             var adminClaimString = Claim.CreateAccount.ToDescription();
 
-            foreach (var admin in DataValues.AdminData())
+            foreach (var admin in DataValues.AdminData(dbContext))
             {
                 if (await userManager.FindByNameAsync(admin.UserName) == null)
                 {
@@ -89,9 +90,9 @@ namespace TmanagerService.Infrastructure.Data
 
         public static async Task SeedRolesAndClaims(UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager)
         {
-            var adminRoleString = Role.Admin.ToDescription();
-            var supervisorRoleString = Role.Supervisor.ToDescription();
-            var repairPersonRoleString = Role.RepairPerson.ToDescription();
+            var adminRoleString = RoleValues.Admin.ToDescription();
+            var supervisorRoleString = RoleValues.Supervisor.ToDescription();
+            var repairPersonRoleString = RoleValues.RepairPerson.ToDescription();
 
             if (!await roleManager.RoleExistsAsync(adminRoleString))
             {

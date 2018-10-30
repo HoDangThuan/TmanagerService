@@ -1,6 +1,8 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.AspNetCore.Http;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
-namespace TmanagerService.Api.InpuModels
+namespace TmanagerService.Api.InputModels
 {
     public class InsertRequestModel
     {
@@ -11,11 +13,8 @@ namespace TmanagerService.Api.InpuModels
         public double Latlng_longitude { get; set; }
         public double Latlng_latitude { get; set; }
         [Required]
-        public string PictureRequest { get; set; }
-
-        //public string SupervisorId { get; set; }
-        //public ApplicationUser Supervisor { get; set; }
-
-        public string Note { get; set; }
+        public string CompanyId { get; set; }
+        [Required]
+        public List<IFormFile> PictureRequest { get; set; }
     }
 }

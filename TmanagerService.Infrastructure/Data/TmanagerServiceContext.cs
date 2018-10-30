@@ -16,16 +16,16 @@ namespace TmanagerService.Infrastructure.Data
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
-            /*
-            builder.Entity<User_Request>().HasKey(table => new {
-                table.UserId
-            });
-            builder.Entity<User_FeedBack>().HasKey(table => new {
-                table.UserId
-            });
-            */
+
+            //builder.Entity<AreaWorking>().HasKey(table => new
+            //{
+            //    table.AdminId,
+            //    table.Area
+            //});
         }
 
+        public DbSet<Company> Companys { get; set; }
+        //public DbSet<AreaWorking> AreaWorkings { get; set; }
         public DbSet<Request> Requests { get; set; }
     }
 }

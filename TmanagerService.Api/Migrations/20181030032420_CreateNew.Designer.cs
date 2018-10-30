@@ -10,8 +10,8 @@ using TmanagerService.Infrastructure.Data;
 namespace TmanagerService.Api.Migrations
 {
     [DbContext(typeof(TmanagerServiceContext))]
-    [Migration("20181015064006_fixDB")]
-    partial class fixDB
+    [Migration("20181030032420_CreateNew")]
+    partial class CreateNew
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -138,9 +138,12 @@ namespace TmanagerService.Api.Migrations
 
                     b.Property<int>("AccessFailedCount");
 
-                    b.Property<string>("Address");
+                    b.Property<string>("Address")
+                        .HasMaxLength(150);
 
-                    b.Property<string>("Area");
+                    b.Property<string>("AdminId");
+
+                    b.Property<string>("CompanyId");
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken();
@@ -153,13 +156,16 @@ namespace TmanagerService.Api.Migrations
 
                     b.Property<bool>("EmailConfirmed");
 
-                    b.Property<string>("FirstName");
+                    b.Property<string>("FirstName")
+                        .HasMaxLength(15);
 
-                    b.Property<string>("Gender");
+                    b.Property<string>("Gender")
+                        .HasMaxLength(6);
 
                     b.Property<bool>("IsEnabled");
 
-                    b.Property<string>("LastName");
+                    b.Property<string>("LastName")
+                        .HasMaxLength(150);
 
                     b.Property<bool>("LockoutEnabled");
 
@@ -179,7 +185,7 @@ namespace TmanagerService.Api.Migrations
 
                     b.Property<bool>("PhoneNumberConfirmed");
 
-                    b.Property<string>("Position");
+                    b.Property<string>("Role");
 
                     b.Property<string>("SecurityStamp");
 
@@ -192,6 +198,8 @@ namespace TmanagerService.Api.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("CompanyId");
+
                     b.HasIndex("NormalizedEmail")
                         .HasName("EmailIndex");
 
@@ -203,18 +211,44 @@ namespace TmanagerService.Api.Migrations
                     b.ToTable("AspNetUsers");
                 });
 
+            modelBuilder.Entity("TmanagerService.Core.Entities.Company", b =>
+                {
+                    b.Property<string>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(50);
+
+                    b.Property<string>("Address")
+                        .HasMaxLength(150);
+
+                    b.Property<string>("AdminId");
+
+                    b.Property<bool>("IsDepartmentOfConstruction");
+
+                    b.Property<string>("Name")
+                        .HasMaxLength(150);
+
+                    b.Property<bool>("Status");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Companys");
+                });
+
             modelBuilder.Entity("TmanagerService.Core.Entities.Request", b =>
                 {
                     b.Property<string>("Id")
-                        .ValueGeneratedOnAdd();
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(50);
 
                     b.Property<string>("Address");
 
+                    b.Property<string>("CompanyId");
+
                     b.Property<string>("Content");
 
-                    b.Property<double>("Latlng_latitude");
+                    b.Property<double?>("Latlng_latitude");
 
-                    b.Property<double>("Latlng_longitude");
+                    b.Property<double?>("Latlng_longitude");
 
                     b.Property<string>("Note");
 
@@ -224,19 +258,26 @@ namespace TmanagerService.Api.Migrations
 
                     b.Property<string>("RepairPersonId");
 
-                    b.Property<string>("Status");
+                    b.Property<string>("ReportContent");
+
+                    b.Property<string>("ReportUserId");
+
+                    b.Property<string>("Status")
+                        .HasMaxLength(50);
 
                     b.Property<string>("SupervisorId");
 
-                    b.Property<DateTime>("TimeBeginRequest");
+                    b.Property<DateTime?>("TimeBeginRequest");
 
-                    b.Property<DateTime>("TimeConfirm");
+                    b.Property<DateTime?>("TimeConfirm");
 
-                    b.Property<DateTime>("TimeFinish");
+                    b.Property<DateTime?>("TimeFinish");
 
-                    b.Property<DateTime>("TimeReceiveRequest");
+                    b.Property<DateTime?>("TimeReceiveRequest");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CompanyId");
 
                     b.HasIndex("RepairPersonId");
 
@@ -290,8 +331,19 @@ namespace TmanagerService.Api.Migrations
                         .OnDelete(DeleteBehavior.Cascade);
                 });
 
+            modelBuilder.Entity("TmanagerService.Core.Entities.ApplicationUser", b =>
+                {
+                    b.HasOne("TmanagerService.Core.Entities.Company", "Company")
+                        .WithMany()
+                        .HasForeignKey("CompanyId");
+                });
+
             modelBuilder.Entity("TmanagerService.Core.Entities.Request", b =>
                 {
+                    b.HasOne("TmanagerService.Core.Entities.Company", "Company")
+                        .WithMany()
+                        .HasForeignKey("CompanyId");
+
                     b.HasOne("TmanagerService.Core.Entities.ApplicationUser", "RepairPerson")
                         .WithMany()
                         .HasForeignKey("RepairPersonId");

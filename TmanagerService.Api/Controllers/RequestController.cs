@@ -1,11 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using TmanagerService.Api.InpuModels;
+using TmanagerService.Api.Identity;
 using TmanagerService.Api.InputModels;
 using TmanagerService.Api.Models;
 using TmanagerService.Core.Entities;
@@ -19,7 +20,6 @@ namespace TmanagerService.Api.Controllers
     [ApiController]
     public class RequestController : ControllerBase
     {
-        DateTime now = DateTime.UtcNow;
 
         private readonly TmanagerServiceContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
@@ -33,6 +33,136 @@ namespace TmanagerService.Api.Controllers
             _userManager = userManager;
         }
 
+        [HttpPost("InsertRequest")]
+        [Authorize(Roles = "Supervisor")]
+        public async Task<ActionResult> InsertRequest([FromForm] InsertRequestModel insertRequestModel)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState.GetErrors());
+            }
+
+            if (insertRequestModel.PictureRequest == null)
+                return BadRequest("Picture not null");
+            if (insertRequestModel.PictureRequest.Count > 5)
+                return BadRequest("Cannot upload more than 5 picture");
+            string strPictureRequest = string.Join(", ", UploadFileToCloudinary.UploadListImage(insertRequestModel.PictureRequest));
+
+            ApplicationUser curUser = await _userManager.GetUserAsync(HttpContext.User);
+
+            Company company = (from cmp in _context.Companys
+                               where cmp.Id == insertRequestModel.CompanyId
+                               select cmp).FirstOrDefault();
+            if (company == null)
+                return BadRequest("Company assignto required");
+            //string requestId = Guid.NewGuid().ToString("N");
+            DateTime now = DateTime.Now;
+            var request = new Request
+            {
+                //Id = requestId,
+                Address = insertRequestModel.Address,
+                Content = insertRequestModel.Content,
+                Latlng_latitude = insertRequestModel.Latlng_latitude,
+                Latlng_longitude = insertRequestModel.Latlng_longitude,
+                TimeBeginRequest = now,
+                PictureRequest = strPictureRequest,
+                Status = RequestStatus.Waiting.ToDescription(),
+                Supervisor = curUser,
+                Company = company
+            };
+            try
+            {
+                await _context.Requests.AddAsync(request);
+                await _context.SaveChangesAsync();
+                return Ok(true);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex);
+            }
+        }
+
+        [HttpPut("RepairPersonReceive")]
+        [Authorize(Roles = "Repair Person")]
+        public async Task<ActionResult> RepairPersonReceive([FromBody] RepairPersonReceiveModel repairPersonReceiveModel)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState.GetErrors());
+            }
+            
+            ApplicationUser curUser = await _userManager.GetUserAsync(HttpContext.User);
+            var request = _context.Requests.FirstOrDefault(rq => rq.Id == repairPersonReceiveModel.RequestId);
+            if (request.Status != RequestStatus.Waiting.ToDescription())
+                return BadRequest("Cannot Receive");
+            if (request.CompanyId != curUser.CompanyId)
+                return BadRequest("Cannot Receive");
+            if (request != null)
+            {
+                try
+                {
+                    DateTime now = DateTime.Now;
+                    request.RepairPerson = curUser;
+                    request.TimeReceiveRequest = now;
+                    request.Status = RequestStatus.ToDo.ToDescription();
+                    _context.Requests.Update(request);
+                    await _context.SaveChangesAsync();
+                    return Ok(true);
+                }
+                catch (Exception ex)
+                {
+                    return BadRequest(ex);
+                }
+            }
+
+            return BadRequest(repairPersonReceiveModel.RequestId + " does not exist");
+        }
+
+        [HttpPut("RepairPersonFinish")]
+        [Authorize(Roles = "Repair Person")]
+        public async Task<ActionResult> RepairPersonFinish([FromForm] RepairPersonFinishModel repairPersonFinishModel)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState.GetErrors());
+            }
+            ApplicationUser curUser = await _userManager.GetUserAsync(HttpContext.User);
+            var request = _context.Requests.FirstOrDefault(rq => rq.Id == repairPersonFinishModel.RequestId);
+            if (request.Status != RequestStatus.ToDo.ToDescription())
+                return BadRequest("Cannot Finish");
+            if(request.RepairPersonId != curUser.Id)
+                return BadRequest("Cannot Finish");
+            if (request != null)
+            {
+                if (request.RepairPersonId == curUser.Id)
+                {
+                    try
+                    {
+                        if (repairPersonFinishModel.ListPictureFinish.Count > 5)
+                            return BadRequest("Cannot upload more than 5 picture");
+                        string strPictureFinish = string.Join(", ", UploadFileToCloudinary.UploadListImage(repairPersonFinishModel.ListPictureFinish));
+                        DateTime now = DateTime.Now;
+                        request.TimeFinish = now;
+                        request.Status = RequestStatus.Done.ToDescription();
+
+                        request.PictureFinish = strPictureFinish;
+
+                        _context.Requests.Update(request);
+                        await _context.SaveChangesAsync();
+                        return Ok(true);
+                    }
+                    catch (Exception ex)
+                    {
+                        return BadRequest(ex);
+                    }
+                }
+                else
+                    return BadRequest("you are not allowed");
+            }
+
+            return BadRequest(repairPersonFinishModel.RequestId + " does not exist");
+        }
+
         [HttpPut("SupervisorConfirm")]
         [Authorize(Roles = "Supervisor")]
         public async Task<ActionResult> SupervisorConfirm([FromBody] SupervisorConfirmModel supervisorConfirmModel)
@@ -44,12 +174,17 @@ namespace TmanagerService.Api.Controllers
 
             ApplicationUser curUser = await _userManager.GetUserAsync(HttpContext.User);
             var request = _context.Requests.FirstOrDefault(rq => rq.Id == supervisorConfirmModel.RequestId);
+            if (request.Status != RequestStatus.Done.ToDescription())
+                return BadRequest("Cannot Approved");
+            if (request.SupervisorId != curUser.Id)
+                return BadRequest("Cannot Finish");
             if (request != null)
             {
                 if (request.SupervisorId == curUser.Id)
                 {
                     try
                     {
+                        DateTime now = DateTime.Now;
                         request.TimeConfirm = now;
                         request.Status = RequestStatus.Approved.ToDescription();
 
@@ -59,202 +194,149 @@ namespace TmanagerService.Api.Controllers
                     }
                     catch (Exception ex)
                     {
-                        throw new ApplicationException(string.Join(Environment.NewLine, ex));
+                        return BadRequest(ex);
                     }
                 }
                 else
-                    throw new ApplicationException(string.Join(Environment.NewLine, "you are not allowed"));
+                    return BadRequest("you are not allowed");
             }
 
-            throw new ApplicationException(string.Join(Environment.NewLine, supervisorConfirmModel.RequestId + " does not exist"));
-        }
-
-        [HttpPut("RepairPersonFinish")]
-        [Authorize(Roles = "Repair Person")]
-        public async Task<ActionResult> RepairPersonFinish([FromBody] RepairPersonFinishModel repairPersonFinishModel)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState.GetErrors());
-            }
-
-            ApplicationUser curUser = await _userManager.GetUserAsync(HttpContext.User);
-            var request = _context.Requests.FirstOrDefault(rq => rq.Id == repairPersonFinishModel.RequestId);
-            if (request != null)
-            {
-                if(request.RepairPersonId == curUser.Id)
-                {
-                    try
-                    {
-                        request.TimeFinish = now;
-                        request.Status = RequestStatus.Done.ToDescription();
-
-                        request.PictureFinish = repairPersonFinishModel.ListPictureFinish;
-
-                        _context.Requests.Update(request);
-                        await _context.SaveChangesAsync();
-                        return Ok(true);
-                    }
-                    catch (Exception ex)
-                    {
-                        throw new ApplicationException(string.Join(Environment.NewLine, ex));
-                    }
-                }
-                else
-                    throw new ApplicationException(string.Join(Environment.NewLine, "you are not allowed"));
-            }
-
-            throw new ApplicationException(string.Join(Environment.NewLine, repairPersonFinishModel.RequestId + " does not exist"));
-        }
-
-        [HttpPut("RepairPersonReceive")]
-        [Authorize(Roles = "Repair Person")]
-        public async Task<ActionResult> RepairPersonReceive([FromBody] RepairPersonReceiveModel repairPersonReceiveModel)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState.GetErrors());
-            }
-
-            ApplicationUser curUser = await _userManager.GetUserAsync(HttpContext.User);
-            var request = _context.Requests.FirstOrDefault(rq => rq.Id == repairPersonReceiveModel.RequestId);
-            if (request != null)
-            {
-                try
-                {
-                    request.RepairPerson = curUser;
-                    request.TimeReceiveRequest = now;
-                    request.Status = RequestStatus.ToDo.ToDescription();
-                    _context.Requests.Update(request);
-                    await _context.SaveChangesAsync();
-                    return Ok(true);
-                }
-                catch (Exception ex)
-                {
-                    throw new ApplicationException(string.Join(Environment.NewLine, ex));
-                }
-            }
-
-            throw new ApplicationException(string.Join(Environment.NewLine, repairPersonReceiveModel.RequestId + " does not exist"));
-        }
-
-        [HttpPost("InsertRequest")]
-        [Authorize(Roles = "Supervisor")]
-        public async Task<ActionResult> InsertRequest([FromBody] InsertRequestModel insertRequestModel)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState.GetErrors());
-            }
-
-            ApplicationUser curUser = await _userManager.GetUserAsync(HttpContext.User);
-            string requestId = Guid.NewGuid().ToString("N");
-            var request = new Request
-            {
-                Id = requestId,
-                Address = insertRequestModel.Address,
-                Content = insertRequestModel.Content,
-                Latlng_latitude = insertRequestModel.Latlng_latitude,
-                Latlng_longitude = insertRequestModel.Latlng_longitude,
-                TimeBeginRequest = now,
-                PictureRequest = insertRequestModel.PictureRequest,
-                Status = RequestStatus.Waiting.ToDescription(),
-                Supervisor = curUser,
-                Note = insertRequestModel.Note
-            };
-            try
-            {
-                await _context.Requests.AddAsync(request);
-                await _context.SaveChangesAsync();
-                return Ok(requestId);
-            }
-            catch (Exception ex)
-            {
-                throw new ApplicationException(string.Join(Environment.NewLine, ex));
-            }
-        }
-
-        [HttpGet("GetRequestByUserId")]
-        [Authorize]
-        public ActionResult GetRequestByUserId(string userId)
-        {
-            if (userId == null)
-                return Ok(null);
-            //throw new ApplicationException(string.Join(Environment.NewLine, "userId is null"));
-            var result = (from request in _context.Requests
-                          where request.RepairPersonId == userId || request.SupervisorId == userId
-                          select new
-                          {
-                              id = request.Id,
-                              address = request.Address,
-                              content = request.Content,
-                              latlng_latitude = request.Latlng_latitude,
-                              latlng_longitude = request.Latlng_longitude,
-                              timeBeginRequest = request.TimeBeginRequest,
-                              timeReceiveRequest = request.TimeReceiveRequest,
-                              timeFinish = request.TimeFinish,
-                              timeConfirm = request.TimeConfirm,
-                              pictureRequest = request.PictureRequest,
-                              pictureFinish = request.PictureFinish,
-                              status = request.Status,
-                              supervisorId = request.SupervisorId,
-                              repairPersonId = request.RepairPersonId,
-                              note = request.Note
-                          }).ToList();
-            if (result is null)
-                return Ok(null);
-            //throw new ApplicationException(string.Join(Environment.NewLine,"Null data"));
-            else
-                return Ok(result);
+            return BadRequest(supervisorConfirmModel.RequestId + " does not exist");
         }
 
         [HttpGet("GetRequestById")]
         [Authorize]
         public ActionResult GetRequestById(string requestId)
         {
-            if (requestId == null)
-                return Ok(null);
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState.GetErrors());
+            }
+
             var result = (from request in _context.Requests
                           where request.Id == requestId
-                          select new
+                          select new ReturnRequest
                           {
-                              id = request.Id,
-                              address = request.Address,
-                              content = request.Content,
-                              latlng_latitude = request.Latlng_latitude,
-                              latlng_longitude = request.Latlng_longitude,
-                              timeBeginRequest = request.TimeBeginRequest,
-                              timeReceiveRequest = request.TimeReceiveRequest,
-                              timeFinish = request.TimeFinish,
-                              timeConfirm = request.TimeConfirm,
-                              pictureRequest = request.PictureRequest,
-                              pictureFinish = request.PictureFinish,
-                              status = request.Status,
-                              supervisorId = request.SupervisorId,
-                              repairPersonId = request.RepairPersonId,
-                              note = request.Note
+                              Id = request.Id,
+                              Address = request.Address,
+                              Latlng_latitude = request.Latlng_latitude,
+                              Latlng_longitude = request.Latlng_longitude,
+                              SupervisorId = request.SupervisorId,
+                              RepairPersonId = request.RepairPersonId,
+                              Content = request.Content,
+                              Status = request.Status,
+                              TimeBeginRequest = request.TimeBeginRequest,
+                              TimeReceiveRequest = request.TimeReceiveRequest,
+                              TimeFinish = request.TimeFinish,
+                              TimeConfirm = request.TimeConfirm,
+                              PictureRequest = String_List.ToList(request.PictureRequest),
+                              PictureFinish = String_List.ToList(request.PictureFinish),
+                              Note = request.Note
                           }).FirstOrDefault();
-            if (result is null)
-                return Ok(null);
-            //throw new ApplicationException(string.Join(Environment.NewLine, requestId + " không tồn tại"));
-            else
-                return Ok(result);
+            return Ok(result);
         }
 
         [HttpGet("GetRequest")]
-        [Authorize(Roles = "Admin")]
-        public ActionResult GetRequest()
+        [Authorize]
+        public async Task<ActionResult> GetRequestAsync()
         {
-            if (_context is null) return null;
-            var result = (from request in _context.Requests
-                          select new
+            ApplicationUser curUser = await _userManager.GetUserAsync(HttpContext.User);
+            List<ListviewRequest> result = new List<ListviewRequest>();            
+            if ( curUser.Role == RoleValues.Admin.ToDescription() )
+            {
+                List<string> listCompany = (from company in _context.Companys
+                                            where company.Id == curUser.Id
+                                            select company.Id).ToList();
+                result = (from request in _context.Requests
+                          where listCompany.Contains(request.CompanyId)
+                          select new ListviewRequest
                           {
-                              id = request.Id
+                              Id = request.Id,
+                              Content = request.Content,
+                              Address = request.Address,
+                              Latlng_latitude = request.Latlng_latitude,
+                              Latlng_longitude = request.Latlng_longitude,
+                              SupervisorId = request.SupervisorId,
+                              TimeBeginRequest = request.TimeBeginRequest,
+                              TimeReceiveRequest = request.TimeReceiveRequest,
+                              TimeFinish = request.TimeFinish,
+                              TimeConfirm = request.TimeConfirm,
+                              PictureRequest = String_List.ToList(request.PictureRequest)
                           }).ToList();
-            if (result is null)
-                return null;
-            else
-                return Ok(result);
+            }
+            if (curUser.Role == RoleValues.RepairPerson.ToDescription())
+            {
+                result = (from request in _context.Requests
+                          where request.CompanyId == curUser.CompanyId
+                          select new ListviewRequest
+                          {
+                              Id = request.Id,
+                              Content = request.Content,
+                              Address = request.Address,
+                              Latlng_latitude = request.Latlng_latitude,
+                              Latlng_longitude = request.Latlng_longitude,
+                              SupervisorId = request.SupervisorId,
+                              TimeBeginRequest = request.TimeBeginRequest,
+                              TimeReceiveRequest = request.TimeReceiveRequest,
+                              TimeFinish = request.TimeFinish,
+                              TimeConfirm = request.TimeConfirm,
+                              PictureRequest = String_List.ToList(request.PictureRequest)
+                          }).ToList();
+            }
+            if (curUser.Role == RoleValues.Supervisor.ToDescription())
+            {
+                result = (from request in _context.Requests
+                          where request.SupervisorId == curUser.Id
+                          select new ListviewRequest
+                          {
+                              Id = request.Id,
+                              Content = request.Content,
+                              Address = request.Address,
+                              Latlng_latitude = request.Latlng_latitude,
+                              Latlng_longitude = request.Latlng_longitude,
+                              SupervisorId = request.SupervisorId,
+                              TimeBeginRequest = request.TimeBeginRequest,
+                              TimeReceiveRequest = request.TimeReceiveRequest,
+                              TimeFinish = request.TimeFinish,
+                              TimeConfirm = request.TimeConfirm,
+                              PictureRequest = String_List.ToList(request.PictureRequest)
+                          }).ToList();
+            }
+            return Ok(result);
+        }
+
+        [HttpPut("Report")]
+        [Authorize(Roles = "Supervisor, Repair Person")]
+        public async Task<ActionResult> ReportAsync(ReportModel reportModel)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState.GetErrors());
+            }
+
+            ApplicationUser curUser = await _userManager.GetUserAsync(HttpContext.User);
+            var request = _context.Requests.FirstOrDefault(rq => rq.Id == reportModel.RequestId);
+            if (request.ReportUserId != null)
+                return BadRequest("cannot report");
+            if (request != null)
+            {
+                try
+                {
+                    DateTime now = DateTime.Now;
+                    request.ReportContent = curUser.UserName + "( " + now.ToString() + " )" + ": " + reportModel.ContentReport;
+                    request.ReportUserId = curUser.Id;
+
+                    _context.Requests.Update(request);
+                    await _context.SaveChangesAsync();
+                    return Ok(true);
+                }
+                catch (Exception ex)
+                {
+                    return BadRequest(ex);
+                }
+            }
+
+            return BadRequest(reportModel.RequestId + " does not exist");
         }
     }
 }

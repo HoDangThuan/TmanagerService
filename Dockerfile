@@ -1,4 +1,4 @@
 FROM microsoft/aspnetcore
 WORKDIR /app
 COPY . .
-CMD ASPNETCORE_URLS=http://*:$PORT dotnet TmanagerService-api-master.dll
+CMD ASPNETCORE_URLS=http://*:$PORT dotnet TmanagerServiceApiMaster.dll

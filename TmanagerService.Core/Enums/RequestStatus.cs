@@ -4,13 +4,13 @@ namespace TmanagerService.Core.Enums
 {
     public enum RequestStatus
     {
-        [Description("Đang chờ")]
+        [Description("Waiting")]
         Waiting = 1,
-        [Description("Đang xử lý")]
+        [Description("To Do")]
         ToDo = 2,
-        [Description("Đã xong")]
+        [Description("Done")]
         Done = 3,
-        [Description("Chấp nhận")]
+        [Description("Approved")]
         Approved = 4
     }
 }
