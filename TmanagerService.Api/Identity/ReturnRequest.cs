@@ -18,7 +18,9 @@ namespace TmanagerService.Api.Identity
         public List<string> PictureFinish { get; set; }
         public string Status { get; set; }
         public string SupervisorId { get; set; }
+        public string SupervisorName { get; set; }
         public string RepairPersonId { get; set; }
+        public string RepairPersonName { get; set; }
         public string AreaWorkingId { get; set; }
         public string AreaWorkingName { get; set; }
         public string Note { get; set; }

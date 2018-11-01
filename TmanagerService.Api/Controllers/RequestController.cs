@@ -46,8 +46,8 @@ namespace TmanagerService.Api.Controllers
                 return BadRequest("Picture not null");
             if (insertRequestModel.PictureRequest.Count > 5)
                 return BadRequest("Cannot upload more than 5 picture");
-            string strPictureRequest = string.Join(", ", UploadFileToCloudinary.UploadListImage(insertRequestModel.PictureRequest));
-
+            string strPictureRequest = String_List.ToString(UploadFileToCloudinary.UploadListImage(insertRequestModel.PictureRequest));
+           
             ApplicationUser curUser = await _userManager.GetUserAsync(HttpContext.User);
 
             Company company = (from cmp in _context.Companys
@@ -222,7 +222,13 @@ namespace TmanagerService.Api.Controllers
                               Latlng_latitude = request.Latlng_latitude,
                               Latlng_longitude = request.Latlng_longitude,
                               SupervisorId = request.SupervisorId,
+                              SupervisorName = (from spv in _context.Users
+                                                where spv.Id == request.SupervisorId
+                                                select spv.LastName + " " + spv.FirstName).FirstOrDefault(),
                               RepairPersonId = request.RepairPersonId,
+                              RepairPersonName = (from rps in _context.Users
+                                                  where rps.Id == request.RepairPersonId
+                                                  select rps.LastName + " " + rps.FirstName).FirstOrDefault(),
                               Content = request.Content,
                               Status = request.Status,
                               TimeBeginRequest = request.TimeBeginRequest,
@@ -245,7 +251,7 @@ namespace TmanagerService.Api.Controllers
             if ( curUser.Role == RoleValues.Admin.ToDescription() )
             {
                 List<string> listCompany = (from company in _context.Companys
-                                            where company.Id == curUser.Id
+                                            where company.AdminId == curUser.Id
                                             select company.Id).ToList();
                 result = (from request in _context.Requests
                           where listCompany.Contains(request.CompanyId)
@@ -256,7 +262,13 @@ namespace TmanagerService.Api.Controllers
                               Latlng_latitude = request.Latlng_latitude,
                               Latlng_longitude = request.Latlng_longitude,
                               SupervisorId = request.SupervisorId,
+                              SupervisorName = (from spv in _context.Users
+                                                where spv.Id == request.SupervisorId
+                                                select spv.LastName + " " + spv.FirstName).FirstOrDefault(),
                               RepairPersonId = request.RepairPersonId,
+                              RepairPersonName = (from rps in _context.Users
+                                                  where rps.Id == request.RepairPersonId
+                                                  select rps.LastName + " " + rps.FirstName).FirstOrDefault(),
                               Content = request.Content,
                               Status = request.Status,
                               TimeBeginRequest = request.TimeBeginRequest,
@@ -279,7 +291,13 @@ namespace TmanagerService.Api.Controllers
                               Latlng_latitude = request.Latlng_latitude,
                               Latlng_longitude = request.Latlng_longitude,
                               SupervisorId = request.SupervisorId,
+                              SupervisorName = (from spv in _context.Users
+                                                where spv.Id == request.SupervisorId
+                                                select spv.LastName + " " + spv.FirstName).FirstOrDefault(),
                               RepairPersonId = request.RepairPersonId,
+                              RepairPersonName = (from rps in _context.Users
+                                                  where rps.Id == request.RepairPersonId
+                                                  select rps.LastName + " " + rps.FirstName).FirstOrDefault(),
                               Content = request.Content,
                               Status = request.Status,
                               TimeBeginRequest = request.TimeBeginRequest,
@@ -313,7 +331,13 @@ namespace TmanagerService.Api.Controllers
                               Latlng_latitude = request.Latlng_latitude,
                               Latlng_longitude = request.Latlng_longitude,
                               SupervisorId = request.SupervisorId,
+                              SupervisorName = (from spv in _context.Users
+                                                where spv.Id == request.SupervisorId
+                                                select spv.LastName + " " + spv.FirstName).FirstOrDefault(),
                               RepairPersonId = request.RepairPersonId,
+                              RepairPersonName = (from rps in _context.Users
+                                                  where rps.Id == request.RepairPersonId
+                                                  select rps.LastName + " " + rps.FirstName).FirstOrDefault(),
                               Content = request.Content,
                               Status = request.Status,
                               TimeBeginRequest = request.TimeBeginRequest,

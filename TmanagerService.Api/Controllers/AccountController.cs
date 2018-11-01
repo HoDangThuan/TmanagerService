@@ -100,7 +100,7 @@ namespace TmanagerService.Api.Controllers
 
                 ApplicationUser curUser = await _userManager.GetUserAsync(HttpContext.User);
                 var company = _context.Companys.FirstOrDefault(c => c.Id == registerModel.CompanyId);
-                if (company == null)
+                if (company == null || !company.Status)
                     return BadRequest("Company failed");
                 string role;
                 if (company.IsDepartmentOfConstruction)
@@ -417,6 +417,38 @@ namespace TmanagerService.Api.Controllers
                 Note = staff.Note,
                 IsEnabled = staff.IsEnabled
             });
+        }
+
+        [HttpGet("DisableAccount")]
+        [Authorize(Roles = "Admin")]
+        public async Task<ActionResult> DisableAccount(DisableAccountModel disableAccountModel)
+        {
+            ApplicationUser curUser = await _userManager.GetUserAsync(HttpContext.User);
+            List<ApplicationUser> lstStf = (from us in _context.Users
+                                            where us.AdminId == curUser.Id
+                                            select us).ToList();
+            List<InformationUser> listStaff = new List<InformationUser>();
+            foreach (var staff in lstStf)
+            {
+                if (staff != null)
+                    listStaff.Add(new InformationUser
+                    {
+                        Id = staff.Id,
+                        UserName = staff.UserName,
+                        FirstName = staff.FirstName,
+                        LastName = staff.LastName,
+                        Address = staff.Address,
+                        Role = staff.Role,
+                        PhoneNumber = staff.PhoneNumber,
+                        Email = staff.Email,
+                        //ListAreaWorking = GetListAreaWorkingInfo(staff),
+                        DateOfBirth = staff.DateOfBirth.ToString("dd-MM-yyyy"),
+                        Gender = staff.Gender,
+                        Note = staff.Note,
+                        IsEnabled = staff.IsEnabled
+                    });
+            }
+            return Ok(listStaff);
         }
 
         //private List<AreaWorkingValues> GetListAreaWorkingInfo(ApplicationUser user)
