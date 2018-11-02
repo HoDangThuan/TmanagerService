@@ -1,12 +1,11 @@
-﻿
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace TmanagerService.Core.Extensions
 {
     public static class String_List
     {
         private const string strMark = ",NStr~| ";
-        public static List<string> ToList(string str)
+        public static List<string> StringToList(this string str) 
         {
             if (str == null)
                 return null;
@@ -18,14 +17,14 @@ namespace TmanagerService.Core.Extensions
             return lstStr;
         }
 
-        public static string ToString(List<string> lstStr)
+        public static string ListToString(this List<string> lstStr)
         {
             if (lstStr.Count == 0)
                 return null;
             return string.Join(strMark, lstStr);
         }
 
-        public static string AddString(string lstStr, string str)
+        public static string AddString(this string lstStr, string str)
         {
             if (lstStr == null)
                 lstStr = str;

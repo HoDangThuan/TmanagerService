@@ -18,7 +18,7 @@ namespace TmanagerService.Core.Entities
         public string Token { get; set; }
 
         [Column(TypeName = "date")]
-        public DateTime DateOfBirth { get; set; }
+        public DateTime? DateOfBirth { get; set; }
 
         [StringLength(150)]
         public string Address { get; set; }

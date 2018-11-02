@@ -114,6 +114,7 @@ namespace TmanagerService.Api.Controllers
                     UserName = registerModel.UserName,
                     Email = registerModel.Email,
                     PhoneNumber = registerModel.PhoneNumber,
+                    DateOfBirth = null,
                     Company = company,
                     Role = role,
                     Gender = ((Gender)registerModel.Gender).ToDescription(),
@@ -207,7 +208,7 @@ namespace TmanagerService.Api.Controllers
                     string subject = "Change your Tmanager account password";
                     string message = "Your account has changed <br/>Passwords for Tmanager account "
                         + curUser.UserName + " has been changed to "
-                        + now.ToString("dd/MM/yyyy HH:mm:ss.fff", CultureInfo.InvariantCulture);
+                        + now.ToDateTimeFull();
                     await _emailSender.SendEmailAsync(curUser.Email, subject, message);
                     return Ok(true);
                 }
@@ -269,13 +270,23 @@ namespace TmanagerService.Api.Controllers
                 return BadRequest(ModelState.GetErrors());
             }
 
-            ApplicationUser curUser = await _userManager.GetUserAsync(HttpContext.User);
             try
             {
+                DateTime TimeBegin = Convert.ToDateTime("01-01-1900");
+                DateTime TimeEnd = DateTime.Now.AddYears(-16);
+                DateTime? dateOfBirth = null;
+                if (changeInformationUserModel.DateOfBirth != null)
+                {
+                    dateOfBirth = changeInformationUserModel.DateOfBirth.ConvertDateTime();
+                    if (dateOfBirth < TimeBegin || dateOfBirth > TimeEnd)
+                        return BadRequest("Date of birth failed");
+                }
+
+                ApplicationUser curUser = await _userManager.GetUserAsync(HttpContext.User);
                 if (changeInformationUserModel.Address != null)
                     curUser.Address = changeInformationUserModel.Address;
-                if (changeInformationUserModel.DateOfBirth != null)
-                    curUser.DateOfBirth = changeInformationUserModel.DateOfBirth;
+                if (dateOfBirth != null)
+                    curUser.DateOfBirth = dateOfBirth;
                 if (changeInformationUserModel.FirstName != null)
                     curUser.FirstName = changeInformationUserModel.FirstName;
                 if (changeInformationUserModel.LastName != null)
@@ -328,7 +339,7 @@ namespace TmanagerService.Api.Controllers
                 PhoneNumber = curUser.PhoneNumber,
                 Email = curUser.Email,
                 //ListAreaWorking = GetListAreaWorkingInfo(curUser),
-                DateOfBirth = curUser.DateOfBirth.ToString("dd-MM-yyyy"),
+                DateOfBirth = curUser.DateOfBirth.ToDate(),
                 Gender = curUser.Gender,
                 IsEnabled = curUser.IsEnabled,
                 Note = curUser.Note
@@ -371,7 +382,7 @@ namespace TmanagerService.Api.Controllers
                         PhoneNumber = staff.PhoneNumber,
                         Email = staff.Email,
                         //ListAreaWorking = GetListAreaWorkingInfo(staff),
-                        DateOfBirth = staff.DateOfBirth.ToString("dd-MM-yyyy"),
+                        DateOfBirth = staff.DateOfBirth.ToDate(),
                         Gender = staff.Gender,
                         Note = staff.Note,
                         IsEnabled = staff.IsEnabled
@@ -412,7 +423,7 @@ namespace TmanagerService.Api.Controllers
                 PhoneNumber = staff.PhoneNumber,
                 Email = staff.Email,
                 //ListAreaWorking = GetListAreaWorkingInfo(staff),
-                DateOfBirth = staff.DateOfBirth.ToString("dd-MM-yyyy"),
+                DateOfBirth = staff.DateOfBirth.ToDate(),
                 Gender = staff.Gender,
                 Note = staff.Note,
                 IsEnabled = staff.IsEnabled
@@ -442,7 +453,7 @@ namespace TmanagerService.Api.Controllers
                         PhoneNumber = staff.PhoneNumber,
                         Email = staff.Email,
                         //ListAreaWorking = GetListAreaWorkingInfo(staff),
-                        DateOfBirth = staff.DateOfBirth.ToString("dd-MM-yyyy"),
+                        DateOfBirth = staff.DateOfBirth.ToDate(),
                         Gender = staff.Gender,
                         Note = staff.Note,
                         IsEnabled = staff.IsEnabled

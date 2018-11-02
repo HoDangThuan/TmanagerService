@@ -3,15 +3,17 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TmanagerService.Infrastructure.Data;
 
 namespace TmanagerService.Api.Migrations
 {
     [DbContext(typeof(TmanagerServiceContext))]
-    partial class TmanagerServiceContextModelSnapshot : ModelSnapshot
+    [Migration("20181102025320_fixUserDB")]
+    partial class fixUserDB
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

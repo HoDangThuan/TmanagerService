@@ -10,10 +10,10 @@ namespace TmanagerService.Api.Identity
         public string Address { get; set; }
         public double? Latlng_latitude { get; set; }
         public double? Latlng_longitude { get; set; }
-        public DateTime? TimeBeginRequest { get; set; }
-        public DateTime? TimeReceiveRequest { get; set; }
-        public DateTime? TimeFinish { get; set; }
-        public DateTime? TimeConfirm { get; set; }
+        public string TimeBeginRequest { get; set; }
+        public string TimeReceiveRequest { get; set; }
+        public string TimeFinish { get; set; }
+        public string TimeConfirm { get; set; }
         public List<string> PictureRequest { get; set; }
         public List<string> PictureFinish { get; set; }
         public string Status { get; set; }

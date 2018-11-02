@@ -3,6 +3,7 @@
 //using Microsoft.AspNetCore.Mvc;
 //using System.Collections.Generic;
 //using TmanagerService.Api.Models;
+//using TmanagerService.Core.Extensions;
 
 //namespace TmanagerService.Api.Controllers
 //{
@@ -17,7 +18,7 @@
 //            if (files is null)
 //                return Ok(null);
 //            List<string> listURI = UploadFileToCloudinary.UploadListImage(files);
-//            string result = string.Join(", ", listURI);
+//            string result = listURI.ListToString();
 //            return Ok(result);
 //        }
 //    }

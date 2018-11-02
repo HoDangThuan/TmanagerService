@@ -44,6 +44,8 @@ namespace TmanagerService.Core.Entities
         public virtual ApplicationUser RepairPerson { get; set; }
 
         public string ReportUserId { get; set; }
+        public virtual ApplicationUser ReportUser { get; set; }
+
         public string ReportContent { get; set; }
 
         public string Note { get; set; }

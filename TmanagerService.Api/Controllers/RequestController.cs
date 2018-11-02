@@ -46,7 +46,7 @@ namespace TmanagerService.Api.Controllers
                 return BadRequest("Picture not null");
             if (insertRequestModel.PictureRequest.Count > 5)
                 return BadRequest("Cannot upload more than 5 picture");
-            string strPictureRequest = String_List.ToString(UploadFileToCloudinary.UploadListImage(insertRequestModel.PictureRequest));
+            string strPictureRequest = UploadFileToCloudinary.UploadListImage(insertRequestModel.PictureRequest).ListToString();
            
             ApplicationUser curUser = await _userManager.GetUserAsync(HttpContext.User);
 
@@ -55,7 +55,6 @@ namespace TmanagerService.Api.Controllers
                                select cmp).FirstOrDefault();
             if (company == null)
                 return BadRequest("Company assignto required");
-            //string requestId = Guid.NewGuid().ToString("N");
             DateTime now = DateTime.Now;
             var request = new Request
             {
@@ -140,7 +139,7 @@ namespace TmanagerService.Api.Controllers
                     {
                         if (repairPersonFinishModel.ListPictureFinish.Count > 5)
                             return BadRequest("Cannot upload more than 5 picture");
-                        string strPictureFinish = string.Join(", ", UploadFileToCloudinary.UploadListImage(repairPersonFinishModel.ListPictureFinish));
+                        string strPictureFinish = UploadFileToCloudinary.UploadListImage(repairPersonFinishModel.ListPictureFinish).ListToString();
                         DateTime now = DateTime.Now;
                         request.TimeFinish = now;
                         request.Status = RequestStatus.Done.ToDescription();
@@ -224,19 +223,19 @@ namespace TmanagerService.Api.Controllers
                               SupervisorId = request.SupervisorId,
                               SupervisorName = (from spv in _context.Users
                                                 where spv.Id == request.SupervisorId
-                                                select spv.LastName + " " + spv.FirstName).FirstOrDefault(),
+                                                select spv.LastName.FullName(spv.FirstName)).FirstOrDefault(),
                               RepairPersonId = request.RepairPersonId,
                               RepairPersonName = (from rps in _context.Users
                                                   where rps.Id == request.RepairPersonId
-                                                  select rps.LastName + " " + rps.FirstName).FirstOrDefault(),
+                                                  select rps.LastName.FullName(rps.FirstName)).FirstOrDefault(),
                               Content = request.Content,
                               Status = request.Status,
-                              TimeBeginRequest = request.TimeBeginRequest,
-                              TimeReceiveRequest = request.TimeReceiveRequest,
-                              TimeFinish = request.TimeFinish,
-                              TimeConfirm = request.TimeConfirm,
-                              PictureRequest = String_List.ToList(request.PictureRequest),
-                              PictureFinish = String_List.ToList(request.PictureFinish),
+                              TimeBeginRequest = request.TimeBeginRequest.ToDateTimeFull(),
+                              TimeReceiveRequest = request.TimeReceiveRequest.ToDateTimeFull(),
+                              TimeFinish = request.TimeFinish.ToDateTimeFull(),
+                              TimeConfirm = request.TimeConfirm.ToDateTimeFull(),
+                              PictureRequest = request.PictureRequest.StringToList(),
+                              PictureFinish = request.PictureFinish.StringToList(),
                               Note = request.Note
                           }).FirstOrDefault();
             return Ok(result);
@@ -264,26 +263,28 @@ namespace TmanagerService.Api.Controllers
                               SupervisorId = request.SupervisorId,
                               SupervisorName = (from spv in _context.Users
                                                 where spv.Id == request.SupervisorId
-                                                select spv.LastName + " " + spv.FirstName).FirstOrDefault(),
+                                                select spv.LastName.FullName(spv.FirstName)).FirstOrDefault(),
                               RepairPersonId = request.RepairPersonId,
                               RepairPersonName = (from rps in _context.Users
                                                   where rps.Id == request.RepairPersonId
-                                                  select rps.LastName + " " + rps.FirstName).FirstOrDefault(),
+                                                  select rps.LastName.FullName(rps.FirstName)).FirstOrDefault(),
                               Content = request.Content,
                               Status = request.Status,
-                              TimeBeginRequest = request.TimeBeginRequest,
-                              TimeReceiveRequest = request.TimeReceiveRequest,
-                              TimeFinish = request.TimeFinish,
-                              TimeConfirm = request.TimeConfirm,
-                              PictureRequest = String_List.ToList(request.PictureRequest),
-                              PictureFinish = String_List.ToList(request.PictureFinish),
+                              TimeBeginRequest = request.TimeBeginRequest.ToDateTimeFull(),
+                              TimeReceiveRequest = request.TimeReceiveRequest.ToDateTimeFull(),
+                              TimeFinish = request.TimeFinish.ToDateTimeFull(),
+                              TimeConfirm = request.TimeConfirm.ToDateTimeFull(),
+                              PictureRequest = request.PictureRequest.StringToList(),
+                              PictureFinish = request.PictureFinish.StringToList(),
                               Note = request.Note
                           }).ToList();
             }
             if (curUser.Role == RoleValues.RepairPerson.ToDescription())
             {
                 result = (from request in _context.Requests
-                          where request.CompanyId == curUser.CompanyId
+                          where request.CompanyId == curUser.CompanyId && 
+                                request.Status != RequestStatus.Done.ToDescription() &&
+                                request.Status != RequestStatus.Approved.ToDescription()
                           select new ReturnRequest
                           {
                               Id = request.Id,
@@ -293,37 +294,27 @@ namespace TmanagerService.Api.Controllers
                               SupervisorId = request.SupervisorId,
                               SupervisorName = (from spv in _context.Users
                                                 where spv.Id == request.SupervisorId
-                                                select spv.LastName + " " + spv.FirstName).FirstOrDefault(),
+                                                select spv.LastName.FullName(spv.FirstName)).FirstOrDefault(),
                               RepairPersonId = request.RepairPersonId,
                               RepairPersonName = (from rps in _context.Users
                                                   where rps.Id == request.RepairPersonId
-                                                  select rps.LastName + " " + rps.FirstName).FirstOrDefault(),
+                                                  select rps.LastName.FullName(rps.FirstName)).FirstOrDefault(),
                               Content = request.Content,
                               Status = request.Status,
-                              TimeBeginRequest = request.TimeBeginRequest,
-                              TimeReceiveRequest = request.TimeReceiveRequest,
-                              TimeFinish = request.TimeFinish,
-                              TimeConfirm = request.TimeConfirm,
-                              PictureRequest = String_List.ToList(request.PictureRequest),
-                              PictureFinish = String_List.ToList(request.PictureFinish),
+                              TimeBeginRequest = request.TimeBeginRequest.ToDateTimeFull(),
+                              TimeReceiveRequest = request.TimeReceiveRequest.ToDateTimeFull(),
+                              TimeFinish = request.TimeFinish.ToDateTimeFull(),
+                              TimeConfirm = request.TimeConfirm.ToDateTimeFull(),
+                              PictureRequest = request.PictureRequest.StringToList(),
+                              PictureFinish = request.PictureFinish.StringToList(),
                               Note = request.Note
-                              //Id = request.Id,
-                              //Content = request.Content,
-                              //Address = request.Address,
-                              //Latlng_latitude = request.Latlng_latitude,
-                              //Latlng_longitude = request.Latlng_longitude,
-                              //SupervisorId = request.SupervisorId,
-                              //TimeBeginRequest = request.TimeBeginRequest,
-                              //TimeReceiveRequest = request.TimeReceiveRequest,
-                              //TimeFinish = request.TimeFinish,
-                              //TimeConfirm = request.TimeConfirm,
-                              //PictureRequest = String_List.ToList(request.PictureRequest)
                           }).ToList();
             }
             if (curUser.Role == RoleValues.Supervisor.ToDescription())
             {
                 result = (from request in _context.Requests
-                          where request.SupervisorId == curUser.Id
+                          where request.SupervisorId == curUser.Id &&
+                                request.Status != RequestStatus.Approved.ToDescription()
                           select new ReturnRequest
                           {
                               Id = request.Id,
@@ -333,19 +324,19 @@ namespace TmanagerService.Api.Controllers
                               SupervisorId = request.SupervisorId,
                               SupervisorName = (from spv in _context.Users
                                                 where spv.Id == request.SupervisorId
-                                                select spv.LastName + " " + spv.FirstName).FirstOrDefault(),
+                                                select spv.LastName.FullName(spv.FirstName)).FirstOrDefault(),
                               RepairPersonId = request.RepairPersonId,
                               RepairPersonName = (from rps in _context.Users
                                                   where rps.Id == request.RepairPersonId
-                                                  select rps.LastName + " " + rps.FirstName).FirstOrDefault(),
+                                                  select rps.LastName.FullName(rps.FirstName)).FirstOrDefault(),
                               Content = request.Content,
                               Status = request.Status,
-                              TimeBeginRequest = request.TimeBeginRequest,
-                              TimeReceiveRequest = request.TimeReceiveRequest,
-                              TimeFinish = request.TimeFinish,
-                              TimeConfirm = request.TimeConfirm,
-                              PictureRequest = String_List.ToList(request.PictureRequest),
-                              PictureFinish = String_List.ToList(request.PictureFinish),
+                              TimeBeginRequest = request.TimeBeginRequest.ToDateTimeFull(),
+                              TimeReceiveRequest = request.TimeReceiveRequest.ToDateTimeFull(),
+                              TimeFinish = request.TimeFinish.ToDateTimeFull(),
+                              TimeConfirm = request.TimeConfirm.ToDateTimeFull(),
+                              PictureRequest = request.PictureRequest.StringToList(),
+                              PictureFinish = request.PictureFinish.StringToList(),
                               Note = request.Note
                           }).ToList();
             }
@@ -370,8 +361,8 @@ namespace TmanagerService.Api.Controllers
                 try
                 {
                     DateTime now = DateTime.Now;
-                    request.ReportContent = curUser.UserName + "( " + now.ToString() + " )" + ": " + reportModel.ContentReport;
-                    request.ReportUserId = curUser.Id;
+                    request.ReportContent = reportModel.ContentReport;
+                    request.ReportUser = curUser;
 
                     _context.Requests.Update(request);
                     await _context.SaveChangesAsync();
