@@ -12,7 +12,7 @@
 //    public class UploadFilesController : ControllerBase
 //    {
 //        [HttpPost]
-//        [Authorize(Roles = "Supervisor, Repair Person")]
+//        //[Authorize(Roles = "Supervisor, Repair Person")]
 //        public IActionResult UploadFiles(List<IFormFile> files)
 //        {
 //            if (files is null)

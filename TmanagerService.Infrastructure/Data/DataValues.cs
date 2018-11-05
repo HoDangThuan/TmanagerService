@@ -24,7 +24,7 @@ namespace TmanagerService.Infrastructure.Data
         {
             return new List<ApplicationUser>()
             {
-                new ApplicationUser { UserName = adminName01, Email = "kientruc.thuan20013@gmail.com", SecurityStamp = Guid.NewGuid().ToString(),
+                new ApplicationUser { UserName = adminName01, Email = "WhoAmITmanager@gmail.com", SecurityStamp = Guid.NewGuid().ToString(),
                     FirstName = "Quản", LastName = "Nguyễn Văn", EmailConfirmed = true, Address = "33 Nguyễn Thị Thập, Đà Nẵng",
                     Role = RoleValues.Admin.ToDescription(), IsEnabled = true, Note = "Admin", Gender = Gender.Male.ToDescription(),
                     DateOfBirth = DateTime.ParseExact("25/12/1965", "dd/MM/yyyy", ci), PhoneNumber =  "0935846275" },
@@ -110,15 +110,15 @@ namespace TmanagerService.Infrastructure.Data
             DateTime now = DateTime.Now;
             return new List<Request>()
             {
-                new Request { Content = "ổ gà có trứng gà", PictureRequest = "http://res.cloudinary.com/dj9j7j4sf/image/upload/v1540364432/uutyqlzzazm7hpxwezn4.jpg,NStr~| http://res.cloudinary.com/dj9j7j4sf/image/upload/v1540364433/tx0cixiggovadderpmdp.jpg",
-                PictureFinish = "http://res.cloudinary.com/dj9j7j4sf/image/upload/v1540364432/uutyqlzzazm7hpxwezn4.jpg,NStr~| http://res.cloudinary.com/dj9j7j4sf/image/upload/v1540364433/tx0cixiggovadderpmdp.jpg",
+                new Request { Content = "ổ gà có trứng gà", PictureRequest = "http://res.cloudinary.com/dj9j7j4sf/image/upload/v1541144270/bbhvdqd1jz9xxrcvszc3.jpg,NStr~| http://res.cloudinary.com/dj9j7j4sf/image/upload/v1541144270/xpr0nra3lfk1fxtqhodz.jpg,NStr~| http://res.cloudinary.com/dj9j7j4sf/image/upload/v1541144271/dd8zsydl9hxhwt3qzcrl.jpg",
+                PictureFinish = "http://res.cloudinary.com/dj9j7j4sf/image/upload/v1541144224/np7rbqxwektldyxw1kat.jpg,NStr~| http://res.cloudinary.com/dj9j7j4sf/image/upload/v1541144225/sdapicoqbredxjrfdf5u.jpg",
                 Latlng_latitude = 16.047194, Latlng_longitude = 108.211754, Supervisor = supervisor, RepairPerson = repairPerson,
                 Address="403 Đường Trưng Nữ Vương, Phường Hòa Thuận Tây, Quận Hải Châu, Thành Phố Đà Nẵng, Hòa Thuận Nam, Hải Châu, Đà Nẵng 550000, Việt Nam",
                 Status = RequestStatus.Approved.ToDescription(), Company = company,
                 TimeBeginRequest =  now.AddSeconds(-2563125), TimeReceiveRequest = now.AddSeconds(-2043125),
                 TimeFinish = now.AddSeconds(-563425), TimeConfirm = now.AddSeconds(-253125) },
-                new Request { Content = "ổ vịt, ổ trâu, ổ khủng long", PictureRequest = "http://res.cloudinary.com/dj9j7j4sf/image/upload/v1540364432/uutyqlzzazm7hpxwezn4.jpg,NStr~| http://res.cloudinary.com/dj9j7j4sf/image/upload/v1540364433/tx0cixiggovadderpmdp.jpg",
-                PictureFinish = "http://res.cloudinary.com/dj9j7j4sf/image/upload/v1540364432/uutyqlzzazm7hpxwezn4.jpg,NStr~| http://res.cloudinary.com/dj9j7j4sf/image/upload/v1540364433/tx0cixiggovadderpmdp.jpg",
+                new Request { Content = "ổ vịt, ổ trâu, ổ khủng long", PictureRequest = "http://res.cloudinary.com/dj9j7j4sf/image/upload/v1541144160/yvswxuhbcbbzrba2ti10.jpg,NStr~| http://res.cloudinary.com/dj9j7j4sf/image/upload/v1541144161/bfdm3bknugvdfoh5u6ec.jpg",
+                PictureFinish = "http://res.cloudinary.com/dj9j7j4sf/image/upload/v1541144225/sdapicoqbredxjrfdf5u.jpg,NStr~| http://res.cloudinary.com/dj9j7j4sf/image/upload/v1541144226/zotgb0n59b3qgpq8xour.jpg,NStr~| http://res.cloudinary.com/dj9j7j4sf/image/upload/v1541144226/bkdzmmsu3gbeny0egdbf.jpg",
                 Latlng_latitude = 16.041583, Latlng_longitude = 108.211631, Supervisor = supervisor, RepairPerson = repairPerson,
                 Address="86-118 Lương Nhữ Hộc, Hoà Cường Bắc, Hải Châu, Đà Nẵng 550000, Việt Nam",
                 Status = RequestStatus.Approved.ToDescription(), Company = company,
