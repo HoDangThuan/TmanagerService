@@ -283,7 +283,6 @@ namespace TmanagerService.Api.Controllers
             {
                 result = (from request in _context.Requests
                           where request.CompanyId == curUser.CompanyId && 
-                                request.Status != RequestStatus.Done.ToDescription() &&
                                 request.Status != RequestStatus.Approved.ToDescription()
                           select new ReturnRequest
                           {

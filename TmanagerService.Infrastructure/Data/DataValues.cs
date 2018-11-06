@@ -41,10 +41,14 @@ namespace TmanagerService.Infrastructure.Data
 
             return new List<Company>()
             {
-                new Company { AdminId = adminId, Name = companyName01, Address = "48 Cao Thắng, Đà Nẵng", Status = true, IsDepartmentOfConstruction = true },
-                new Company { AdminId = adminId, Name = "Công ty xây dựng 2", Address = "138 Đống Đa, Đà Nẵng", Status = true, IsDepartmentOfConstruction = false },
-                new Company { AdminId = adminId, Name = "Công ty xây dựng 3", Address = "55 Nguyễn Du, Đà Nẵng", Status = true, IsDepartmentOfConstruction = false },
-                new Company { AdminId = adminId, Name = DepartmentOfConstruction, Address = "Tầng 12, tầng 13 - Trung tâm hành chính - 24 Trần Phú, quận Hải Châu, thành phố Đà Nẵng", Status = true, IsDepartmentOfConstruction = false }
+                new Company { AdminId = adminId, Name = companyName01, Address = "48 Cao Thắng, Đà Nẵng", Status = true, IsDepartmentOfConstruction = true,
+                    Logo = "http://res.cloudinary.com/dj9j7j4sf/image/upload/v1541472243/cj8pkzjrj41abqcfo0kl.png" },
+                new Company { AdminId = adminId, Name = "Công ty xây dựng 2", Address = "138 Đống Đa, Đà Nẵng", Status = true, IsDepartmentOfConstruction = false,
+                    Logo = "http://res.cloudinary.com/dj9j7j4sf/image/upload/v1541472244/uoslpdsifawv5gdzeor5.png" },
+                new Company { AdminId = adminId, Name = "Công ty xây dựng 3", Address = "55 Nguyễn Du, Đà Nẵng", Status = true, IsDepartmentOfConstruction = false,
+                    Logo = "http://res.cloudinary.com/dj9j7j4sf/image/upload/v1541472245/klaupqhjuta8bsfjoygu.png" },
+                new Company { AdminId = adminId, Name = DepartmentOfConstruction, Address = "Tầng 12, tầng 13 - Trung tâm hành chính - 24 Trần Phú, quận Hải Châu, thành phố Đà Nẵng", Status = true, IsDepartmentOfConstruction = false,
+                    Logo = "http://res.cloudinary.com/dj9j7j4sf/image/upload/v1541472603/fyx5d6frnnb2u5mvlvjp.jpg" }
             };
         }
 

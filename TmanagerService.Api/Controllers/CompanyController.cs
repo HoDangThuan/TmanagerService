@@ -32,23 +32,24 @@ namespace TmanagerService.Api.Controllers
 
         [HttpPost("AddCompany")]
         [Authorize(Roles = "Admin")]
-        public async Task<ActionResult> AddCompany([FromBody] AddCompanyModel addCompanyModel)
+        public async Task<ActionResult> AddCompany([FromForm] AddCompanyModel addCompanyModel)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState.GetErrors());
             }
 
-            ApplicationUser curUser = await _userManager.GetUserAsync(HttpContext.User);
-
             try
             {
+                ApplicationUser curUser = await _userManager.GetUserAsync(HttpContext.User);
+                string strPicture = UploadFileToCloudinary.UploadImage(addCompanyModel.Logo);
                 Company company = new Company
                 {
                     AdminId = curUser.Id,
                     Name = addCompanyModel.CompanyName,
                     Address = addCompanyModel.Address,
                     IsDepartmentOfConstruction = addCompanyModel.IsDepartmentOfConstruction,
+                    Logo = strPicture,
                     Status = true
                 };
                 await _context.Companys.AddAsync(company);
@@ -158,6 +159,7 @@ namespace TmanagerService.Api.Controllers
                                   Id = company.Id,
                                   Name = company.Name,
                                   Address = company.Address,
+                                  Logo = company.Logo,
                                   Status = company.Status
                               }).ToList();
             return Ok(lstCompany);
@@ -165,7 +167,7 @@ namespace TmanagerService.Api.Controllers
 
         [HttpPut("ChangeInformationCompany")]
         [Authorize(Roles = "Admin")]
-        public async Task<ActionResult> ChangeInformationCompany([FromBody] ChangeInformationCompanyModel changeInformationCompanyModel)
+        public async Task<ActionResult> ChangeInformationCompany([FromForm] ChangeInformationCompanyModel changeInformationCompanyModel)
         {
             if (!ModelState.IsValid)
             {
@@ -174,11 +176,16 @@ namespace TmanagerService.Api.Controllers
 
             try
             {
+                ApplicationUser admin = await _userManager.GetUserAsync(HttpContext.User);
                 Company company = _context.Companys.FirstOrDefault(c => c.Id == changeInformationCompanyModel.CompanyId);
+                if (company.AdminId != admin.Id)
+                    return BadRequest("You are not allowed");
                 if (changeInformationCompanyModel.Address != null)
                     company.Address = changeInformationCompanyModel.Address;
                 if (changeInformationCompanyModel.Name != null)
                     company.Name = changeInformationCompanyModel.Name;
+                if (changeInformationCompanyModel.Logo != null)
+                    company.Logo = UploadFileToCloudinary.UploadImage(changeInformationCompanyModel.Logo);
 
                 _context.Companys.Update(company);
                 await _context.SaveChangesAsync();

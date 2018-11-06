@@ -16,6 +16,8 @@ namespace TmanagerService.Core.Entities
         [StringLength(150)]
         public string Address { get; set; }
 
+        public string Logo { get; set; }
+
         public string AdminId { get; set; }
 
         public bool IsDepartmentOfConstruction { get; set; }
