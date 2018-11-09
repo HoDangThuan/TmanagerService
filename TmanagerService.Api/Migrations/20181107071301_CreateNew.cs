@@ -29,6 +29,7 @@ namespace TmanagerService.Api.Migrations
                     Id = table.Column<string>(maxLength: 50, nullable: false),
                     Name = table.Column<string>(maxLength: 150, nullable: true),
                     Address = table.Column<string>(maxLength: 150, nullable: true),
+                    Logo = table.Column<string>(nullable: true),
                     AdminId = table.Column<string>(nullable: true),
                     IsDepartmentOfConstruction = table.Column<bool>(nullable: false),
                     Status = table.Column<bool>(nullable: false)
@@ -81,8 +82,7 @@ namespace TmanagerService.Api.Migrations
                     FirstName = table.Column<string>(maxLength: 15, nullable: true),
                     LastName = table.Column<string>(maxLength: 150, nullable: true),
                     IsEnabled = table.Column<bool>(nullable: false),
-                    Token = table.Column<string>(nullable: true),
-                    DateOfBirth = table.Column<DateTime>(type: "date", nullable: false),
+                    DateOfBirth = table.Column<DateTime>(type: "date", nullable: true),
                     Address = table.Column<string>(maxLength: 150, nullable: true),
                     Gender = table.Column<string>(maxLength: 6, nullable: true),
                     Role = table.Column<string>(nullable: true),
@@ -225,6 +225,12 @@ namespace TmanagerService.Api.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
+                        name: "FK_Requests_AspNetUsers_ReportUserId",
+                        column: x => x.ReportUserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
                         name: "FK_Requests_AspNetUsers_SupervisorId",
                         column: x => x.SupervisorId,
                         principalTable: "AspNetUsers",
@@ -285,6 +291,11 @@ namespace TmanagerService.Api.Migrations
                 name: "IX_Requests_RepairPersonId",
                 table: "Requests",
                 column: "RepairPersonId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Requests_ReportUserId",
+                table: "Requests",
+                column: "ReportUserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Requests_SupervisorId",

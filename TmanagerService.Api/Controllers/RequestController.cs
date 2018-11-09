@@ -254,6 +254,7 @@ namespace TmanagerService.Api.Controllers
                                             select company.Id).ToList();
                 result = (from request in _context.Requests
                           where listCompany.Contains(request.CompanyId)
+                          orderby request.TimeBeginRequest, request.TimeFinish
                           select new ReturnRequest
                           {
                               Id = request.Id,
@@ -284,6 +285,7 @@ namespace TmanagerService.Api.Controllers
                 result = (from request in _context.Requests
                           where request.CompanyId == curUser.CompanyId && 
                                 request.Status != RequestStatus.Approved.ToDescription()
+                          orderby request.TimeBeginRequest, request.TimeFinish
                           select new ReturnRequest
                           {
                               Id = request.Id,
@@ -314,6 +316,7 @@ namespace TmanagerService.Api.Controllers
                 result = (from request in _context.Requests
                           where request.SupervisorId == curUser.Id &&
                                 request.Status != RequestStatus.Approved.ToDescription()
+                          orderby request.TimeBeginRequest, request.TimeFinish
                           select new ReturnRequest
                           {
                               Id = request.Id,

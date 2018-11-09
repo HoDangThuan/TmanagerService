@@ -7,18 +7,16 @@ using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 using TmanagerService.Core.Entities;
-using TmanagerService.Infrastructure.Data;
 
 namespace TmanagerService.Api.Models
 {
     public class TokenProvider
     {
-        public static async Task<string> ExecuteAsync(ApplicationUser user, TmanagerServiceContext db,
-            UserManager<ApplicationUser> _userManager)
+        public static async Task<string> ExecuteAsync(ApplicationUser user, UserManager<ApplicationUser> _userManager)
         {
             
             var now = DateTime.UtcNow;
-            var expTime = now.AddDays(Convert.ToInt32(Startup.Configuration["Jwt_refresh_token_expire_days"]));
+            var expTime = now.AddDays(Convert.ToInt32(Startup.Configuration["Jwt:refreshTokenExpireDays"]));
 
             var claims = new List<Claim>()
             {
@@ -42,11 +40,11 @@ namespace TmanagerService.Api.Models
                 claims.Add(new Claim(claim.Type, claim.Value));
             }
 
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Startup.Configuration["Jwt_Key"]));
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Startup.Configuration["Jwt:secretKey"]));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
-            var token = new JwtSecurityToken(Startup.Configuration["Jwt_Issuer"],
-                Startup.Configuration["Jwt_Issuer"],
+            var token = new JwtSecurityToken(Startup.Configuration["Jwt:issuer"],
+                Startup.Configuration["Jwt:issuer"],
                 claims,
                 signingCredentials: creds);
             return new JwtSecurityTokenHandler().WriteToken(token);

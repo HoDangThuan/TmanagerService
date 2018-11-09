@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
@@ -27,12 +26,12 @@ namespace TmanagerService.Api.Controllers
         private readonly TmanagerServiceContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
-        //private readonly HttpContext _httpContext;
+        private readonly ITokenManager _tokenManager;
         public AccountController(
             SignInManager<ApplicationUser> signInManager,
             UserManager<ApplicationUser> userManager,
             IEmailSender emailSender,
-            //HttpContext httpContext,
+            ITokenManager tokenManager,
             TmanagerServiceContext context
             )
         {
@@ -40,7 +39,7 @@ namespace TmanagerService.Api.Controllers
             _userManager = userManager;
             _context = context;
             _emailSender = emailSender;
-            //_httpContext = httpContext;
+            _tokenManager = tokenManager;
         }
 
         [HttpPost("Login")]
@@ -51,28 +50,43 @@ namespace TmanagerService.Api.Controllers
                 return BadRequest(ModelState.GetErrors());
             }
 
+            var user = await _userManager.FindByNameAsync(loginModel.UserName);
+            if (!user.IsEnabled)
+                return StatusCode(403);
+
             var result = await _signInManager.PasswordSignInAsync(loginModel.UserName, loginModel.Password, loginModel.RememberMe, lockoutOnFailure: true);
             if (result.Succeeded)
             {
-                var user = await _userManager.FindByNameAsync(loginModel.UserName);
-                string tokenResponse = await TokenProvider.ExecuteAsync(user, _context, _userManager);
-
-                //Refresh Token
-                user.Token = tokenResponse;
-                await _userManager.UpdateAsync(user);
-
+                string tokenResponse = await TokenProvider.ExecuteAsync(user, _userManager);
+                
                 return Ok(new { token = tokenResponse });
             }
             if (result.RequiresTwoFactor)
             {
-                return BadRequest(result.RequiresTwoFactor);
+                return BadRequest("Requires Two Factor");
             }
             if (result.IsLockedOut)
             {
-                return BadRequest(result.IsLockedOut);
+                return BadRequest("Is Locked Out");
             }
 
             return BadRequest();
+        }
+
+        [HttpPut("Logout")]
+        [Authorize]
+        public async Task<IActionResult> Logout()
+        {
+            try
+            {
+                //revoke token
+                await _tokenManager.DeactivateCurrentAsync();
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
         }
 
         [HttpPost("Register")]
@@ -204,6 +218,10 @@ namespace TmanagerService.Api.Controllers
             {
                 try
                 {
+                    //revoke token
+                    await _tokenManager.DeactivateCurrentAsync();
+
+                    //send email
                     DateTime now = DateTime.Now;
                     string subject = "Change your Tmanager account password";
                     string message = "Your account has changed <br/>Passwords for Tmanager account "
@@ -272,6 +290,7 @@ namespace TmanagerService.Api.Controllers
 
             try
             {
+                ApplicationUser curUser = await _userManager.GetUserAsync(HttpContext.User);
                 DateTime TimeBegin = Convert.ToDateTime("01-01-1900");
                 DateTime TimeEnd = DateTime.Now.AddYears(-16);
                 DateTime? dateOfBirth = null;
@@ -281,8 +300,6 @@ namespace TmanagerService.Api.Controllers
                     if (dateOfBirth < TimeBegin || dateOfBirth > TimeEnd)
                         return BadRequest("Date of birth failed");
                 }
-
-                ApplicationUser curUser = await _userManager.GetUserAsync(HttpContext.User);
                 if (changeInformationUserModel.Address != null)
                     curUser.Address = changeInformationUserModel.Address;
                 if (dateOfBirth != null)
@@ -294,9 +311,11 @@ namespace TmanagerService.Api.Controllers
                 if (changeInformationUserModel.PhoneNumber != null)
                     curUser.PhoneNumber = changeInformationUserModel.PhoneNumber;
 
-                await _userManager.UpdateAsync(curUser);
-                await _context.SaveChangesAsync();
-                return Ok(true);
+                var result = await _userManager.UpdateAsync(curUser);
+                if (result.Succeeded)
+                    return Ok(true);
+                else
+                    return BadRequest(result.Errors);
             }
             catch (Exception ex)
             {
@@ -326,8 +345,6 @@ namespace TmanagerService.Api.Controllers
         {
             ApplicationUser curUser = await _userManager.GetUserAsync(HttpContext.User);
 
-            if (!curUser.IsEnabled)
-                return BadRequest("Account blocked");
             InformationUser infoUser = new InformationUser
             {
                 Id = curUser.Id,
@@ -430,36 +447,27 @@ namespace TmanagerService.Api.Controllers
             });
         }
 
-        [HttpGet("DisableAccount")]
+        [HttpPut("BlockAndOpenAcount")]
         [Authorize(Roles = "Admin")]
-        public async Task<ActionResult> DisableAccount(DisableAccountModel disableAccountModel)
+        public async Task<ActionResult> BlockAndOpenAcount([FromBody] BlockAndOpenAcountModel blockAndOpenAcountModel)
         {
-            ApplicationUser curUser = await _userManager.GetUserAsync(HttpContext.User);
-            List<ApplicationUser> lstStf = (from us in _context.Users
-                                            where us.AdminId == curUser.Id
-                                            select us).ToList();
-            List<InformationUser> listStaff = new List<InformationUser>();
-            foreach (var staff in lstStf)
-            {
-                if (staff != null)
-                    listStaff.Add(new InformationUser
-                    {
-                        Id = staff.Id,
-                        UserName = staff.UserName,
-                        FirstName = staff.FirstName,
-                        LastName = staff.LastName,
-                        Address = staff.Address,
-                        Role = staff.Role,
-                        PhoneNumber = staff.PhoneNumber,
-                        Email = staff.Email,
-                        //ListAreaWorking = GetListAreaWorkingInfo(staff),
-                        DateOfBirth = staff.DateOfBirth.ToDate(),
-                        Gender = staff.Gender,
-                        Note = staff.Note,
-                        IsEnabled = staff.IsEnabled
-                    });
-            }
-            return Ok(listStaff);
+            ApplicationUser admin = await _userManager.GetUserAsync(HttpContext.User);
+            ApplicationUser user = await _userManager.FindByIdAsync(blockAndOpenAcountModel.UserId);
+
+            if (user.AdminId != admin.Id || user == null)
+                return BadRequest("You are not allowed");
+
+            user.IsEnabled = !user.IsEnabled;
+
+            //user.LockoutEnabled = true;
+            //user.LockoutEnd = DateTime.UtcNow.AddYears(1000);
+
+            var result = await _userManager.UpdateAsync(user);
+
+            if (result.Succeeded)
+                return Ok(true);
+            else
+                return BadRequest(result.Errors);
         }
 
         //private List<AreaWorkingValues> GetListAreaWorkingInfo(ApplicationUser user)

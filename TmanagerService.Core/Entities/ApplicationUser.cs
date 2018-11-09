@@ -13,9 +13,8 @@ namespace TmanagerService.Core.Entities
         [StringLength(150)]
         public string LastName { get; set; }
 
+        [Required]
         public bool IsEnabled { get; set; }
-
-        public string Token { get; set; }
 
         [Column(TypeName = "date")]
         public DateTime? DateOfBirth { get; set; }

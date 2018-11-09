@@ -6,7 +6,9 @@ using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using System;
 using TmanagerService.Api.App_Start;
+using TmanagerService.Api.Middleware;
 using TmanagerService.Api.Models;
 using TmanagerService.Core.Entities;
 using TmanagerService.Infrastructure.Data;
@@ -32,6 +34,8 @@ namespace TmanagerService.Api
                 options.MinimumSameSitePolicy = SameSiteMode.None;
             });
 
+            services.AddTransient<TokenManagerMiddleware>();
+            services.AddTransient<ITokenManager, TokenManager>();
             services.AddTransient<IEmailSender, EmailSender>(i =>
                 new EmailSender(
                     Configuration["EmailSender:Host"],
@@ -43,7 +47,7 @@ namespace TmanagerService.Api
             );
 
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
-            
+
             //services.AddMvc(config =>
             //{
             //    var policy = new AuthorizationPolicyBuilder()
@@ -56,7 +60,7 @@ namespace TmanagerService.Api
             services.AddIdentity<ApplicationUser, IdentityRole>(IdentityConfig.Config)
                 .AddEntityFrameworkStores<TmanagerServiceContext>()
                 .AddDefaultTokenProviders();
-
+            
             services.AddAuthentication(AuthenticationConfig.Config)
                 .AddJwtBearer(JwtBearerConfig.Config);
         }
@@ -77,8 +81,9 @@ namespace TmanagerService.Api
             app.UseHttpsRedirection();
             app.UseStaticFiles();
             app.UseCookiePolicy();
-
             app.UseAuthentication();
+            app.UseMiddleware<TokenManagerMiddleware>();
+            app.UseMiddleware<CheckEnableUserMiddleware>();
 
             app.UseMvc(routes =>
             {

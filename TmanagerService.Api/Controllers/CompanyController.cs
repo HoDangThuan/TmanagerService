@@ -78,6 +78,8 @@ namespace TmanagerService.Api.Controllers
             }
 
             ApplicationUser admin = await _userManager.GetUserAsync(HttpContext.User);
+            if (!admin.IsEnabled)
+                BadRequest("Account blocked");
             var company = (from cpn in _context.Companys
                            where cpn.Id == changeCompanyStatusModel.CompanyId
                                 && cpn.AdminId == admin.Id
@@ -177,6 +179,8 @@ namespace TmanagerService.Api.Controllers
             try
             {
                 ApplicationUser admin = await _userManager.GetUserAsync(HttpContext.User);
+                if (!admin.IsEnabled)
+                    BadRequest("Account blocked");
                 Company company = _context.Companys.FirstOrDefault(c => c.Id == changeInformationCompanyModel.CompanyId);
                 if (company.AdminId != admin.Id)
                     return BadRequest("You are not allowed");

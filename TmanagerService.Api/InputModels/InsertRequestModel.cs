@@ -10,7 +10,9 @@ namespace TmanagerService.Api.InputModels
         public string Content { get; set; }
         [Required]
         public string Address { get; set; }
+        [Required]
         public double Latlng_longitude { get; set; }
+        [Required]
         public double Latlng_latitude { get; set; }
         [Required]
         public string CompanyId { get; set; }

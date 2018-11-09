@@ -10,7 +10,7 @@ using TmanagerService.Infrastructure.Data;
 namespace TmanagerService.Api.Migrations
 {
     [DbContext(typeof(TmanagerServiceContext))]
-    [Migration("20181030032420_CreateNew")]
+    [Migration("20181107071301_CreateNew")]
     partial class CreateNew
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -148,7 +148,7 @@ namespace TmanagerService.Api.Migrations
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken();
 
-                    b.Property<DateTime>("DateOfBirth")
+                    b.Property<DateTime?>("DateOfBirth")
                         .HasColumnType("date");
 
                     b.Property<string>("Email")
@@ -189,8 +189,6 @@ namespace TmanagerService.Api.Migrations
 
                     b.Property<string>("SecurityStamp");
 
-                    b.Property<string>("Token");
-
                     b.Property<bool>("TwoFactorEnabled");
 
                     b.Property<string>("UserName")
@@ -223,6 +221,8 @@ namespace TmanagerService.Api.Migrations
                     b.Property<string>("AdminId");
 
                     b.Property<bool>("IsDepartmentOfConstruction");
+
+                    b.Property<string>("Logo");
 
                     b.Property<string>("Name")
                         .HasMaxLength(150);
@@ -280,6 +280,8 @@ namespace TmanagerService.Api.Migrations
                     b.HasIndex("CompanyId");
 
                     b.HasIndex("RepairPersonId");
+
+                    b.HasIndex("ReportUserId");
 
                     b.HasIndex("SupervisorId");
 
@@ -347,6 +349,10 @@ namespace TmanagerService.Api.Migrations
                     b.HasOne("TmanagerService.Core.Entities.ApplicationUser", "RepairPerson")
                         .WithMany()
                         .HasForeignKey("RepairPersonId");
+
+                    b.HasOne("TmanagerService.Core.Entities.ApplicationUser", "ReportUser")
+                        .WithMany()
+                        .HasForeignKey("ReportUserId");
 
                     b.HasOne("TmanagerService.Core.Entities.ApplicationUser", "Supervisor")
                         .WithMany()
