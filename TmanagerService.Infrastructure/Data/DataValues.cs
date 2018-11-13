@@ -27,11 +27,13 @@ namespace TmanagerService.Infrastructure.Data
                 new ApplicationUser { UserName = adminName01, Email = "WhoAmITmanager@gmail.com", SecurityStamp = Guid.NewGuid().ToString(),
                     FirstName = "Quản", LastName = "Nguyễn Văn", EmailConfirmed = true, Address = "33 Nguyễn Thị Thập, Đà Nẵng",
                     Role = RoleValues.Admin.ToDescription(), IsEnabled = true, Note = "Admin", Gender = Gender.Male.ToDescription(),
-                    DateOfBirth = DateTime.ParseExact("25/12/1965", "dd/MM/yyyy", ci), PhoneNumber =  "0935846275" },
+                    DateOfBirth = DateTime.ParseExact("25/12/1965", "dd/MM/yyyy", ci), PhoneNumber =  "0935846275",
+                    Avatar = "http://res.cloudinary.com/dj9j7j4sf/image/upload/v1541990231/gavt5iohsv8aose0zx5a.jpg"},
                 new ApplicationUser { UserName = "Admin02", Email = "TranThiTri@gmail.com", SecurityStamp = Guid.NewGuid().ToString(),
                     FirstName = "Trị", LastName = "Trần Thị", EmailConfirmed = true, Address = "63 Nguyễn Thị Thập, Đà Nẵng",
                     Role = RoleValues.Admin.ToDescription(), IsEnabled = true, Note = "Admin", Gender = Gender.Female.ToDescription(),
-                    DateOfBirth = DateTime.ParseExact("25/12/1967", "dd/MM/yyyy", ci), PhoneNumber =  "0968547213" }
+                    DateOfBirth = DateTime.ParseExact("25/12/1967", "dd/MM/yyyy", ci), PhoneNumber =  "0968547213",
+                    Avatar = "http://res.cloudinary.com/dj9j7j4sf/image/upload/v1541990447/c3mygtlyhbf7vzhzocqs.jpg" }
             };
         }
 
@@ -76,11 +78,13 @@ namespace TmanagerService.Infrastructure.Data
                     FirstName = "Thuần", LastName = "Hồ Đăng", EmailConfirmed = true, Address = "33 Tô Hiệu, Huế",
                     Role = RoleValues.Supervisor.ToDescription(), IsEnabled = true, Note = "Supervisor", Gender = Gender.Male.ToDescription(),
                     DateOfBirth = DateTime.ParseExact("18/08/1989", "dd/MM/yyyy", ci), PhoneNumber =  "0965784235",
+                    Avatar = "http://res.cloudinary.com/dj9j7j4sf/image/upload/v1541990232/jx4eptaytrv0yjz1ipkr.jpg",
                     AdminId = admin.Id, Company = departmentOfConstruction, },
                 new ApplicationUser { UserName = "NguyenNgocTan", Email = "NguyenNgocTan@yahoo.com", SecurityStamp = Guid.NewGuid().ToString(),
                     FirstName = "Tấn", LastName = "Nguyễn Ngọc", EmailConfirmed = true, Address = "73 Tô Hiệu, Huế",
                     Role = RoleValues.Supervisor.ToDescription(), IsEnabled = true, Note = "Supervisor", Gender = Gender.Female.ToDescription(),
                     DateOfBirth = DateTime.ParseExact("18/08/1995", "dd/MM/yyyy", ci), PhoneNumber =  "0986523475",
+                    Avatar = "http://res.cloudinary.com/dj9j7j4sf/image/upload/v1541990232/fwegbvhw0adpwn0y2mii.jpg",
                     AdminId = admin.Id, Company = departmentOfConstruction, }
             };
         }
@@ -94,11 +98,13 @@ namespace TmanagerService.Infrastructure.Data
                     FirstName = "Hiền", LastName = "Nguyễn Văn", EmailConfirmed = true, Address = "73 Tô Thất Tùng, Huế",
                     Role = RoleValues.RepairPerson.ToDescription(), IsEnabled = true, Note = "Repair Person", Gender = Gender.Female.ToDescription(),
                     DateOfBirth = DateTime.ParseExact("20/10/1995", "dd/MM/yyyy", ci), PhoneNumber =  "0965847596",
+                    Avatar = "http://res.cloudinary.com/dj9j7j4sf/image/upload/v1541990231/ilivdpzc54qdjomgggeo.jpg",
                     AdminId = admin.Id, Company = company  },
                 new ApplicationUser { UserName = "NguyenVanHau", Email = "NguyenVanHau@yahoo.com", SecurityStamp = Guid.NewGuid().ToString(),
                     FirstName = "Hậu", LastName = "Nguyễn Văn", EmailConfirmed = true, Address = "43 Tô Thất Tùng, Huế",
                     Role = RoleValues.RepairPerson.ToDescription(), IsEnabled = true, Note = "Repair Person", Gender = Gender.Male.ToDescription(),
                     DateOfBirth = DateTime.ParseExact("20/10/1994", "dd/MM/yyyy", ci), PhoneNumber =  "0968572435",
+                    Avatar = "http://res.cloudinary.com/dj9j7j4sf/image/upload/v1541990446/cincgj3ysgq69ijkb3ou.png",
                     AdminId = admin.Id, Company = company  }
             };
         }

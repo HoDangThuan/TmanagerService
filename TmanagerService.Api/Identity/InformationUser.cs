@@ -18,6 +18,7 @@ namespace TmanagerService.Api.Identity
         public string DateOfBirth { get; set; }
         public string Gender { get; set; }
         public string Note { get; set; }
+        public string Avatar { get; set; }
         public bool IsEnabled { get; set; }
     }
 }

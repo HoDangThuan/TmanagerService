@@ -241,107 +241,58 @@ namespace TmanagerService.Api.Controllers
             return Ok(result);
         }
 
-        [HttpGet("GetRequest")]
+        [HttpGet("GetRequest")] 
         [Authorize]
         public async Task<ActionResult> GetRequestAsync()
         {
             ApplicationUser curUser = await _userManager.GetUserAsync(HttpContext.User);
-            List<ReturnRequest> result = new List<ReturnRequest>();            
-            if ( curUser.Role == RoleValues.Admin.ToDescription() )
-            {
-                List<string> listCompany = (from company in _context.Companys
-                                            where company.AdminId == curUser.Id
-                                            select company.Id).ToList();
-                result = (from request in _context.Requests
-                          where listCompany.Contains(request.CompanyId)
-                          orderby request.TimeBeginRequest, request.TimeFinish
-                          select new ReturnRequest
-                          {
-                              Id = request.Id,
-                              Address = request.Address,
-                              Latlng_latitude = request.Latlng_latitude,
-                              Latlng_longitude = request.Latlng_longitude,
-                              SupervisorId = request.SupervisorId,
-                              SupervisorName = (from spv in _context.Users
-                                                where spv.Id == request.SupervisorId
-                                                select spv.LastName.FullName(spv.FirstName)).FirstOrDefault(),
-                              RepairPersonId = request.RepairPersonId,
-                              RepairPersonName = (from rps in _context.Users
-                                                  where rps.Id == request.RepairPersonId
-                                                  select rps.LastName.FullName(rps.FirstName)).FirstOrDefault(),
-                              Content = request.Content,
-                              Status = request.Status,
-                              TimeBeginRequest = request.TimeBeginRequest.ToDateTimeFull(),
-                              TimeReceiveRequest = request.TimeReceiveRequest.ToDateTimeFull(),
-                              TimeFinish = request.TimeFinish.ToDateTimeFull(),
-                              TimeConfirm = request.TimeConfirm.ToDateTimeFull(),
-                              PictureRequest = request.PictureRequest.StringToList(),
-                              PictureFinish = request.PictureFinish.StringToList(),
-                              Note = request.Note
-                          }).ToList();
-            }
-            if (curUser.Role == RoleValues.RepairPerson.ToDescription())
-            {
-                result = (from request in _context.Requests
-                          where request.CompanyId == curUser.CompanyId && 
-                                request.Status != RequestStatus.Approved.ToDescription()
-                          orderby request.TimeBeginRequest, request.TimeFinish
-                          select new ReturnRequest
-                          {
-                              Id = request.Id,
-                              Address = request.Address,
-                              Latlng_latitude = request.Latlng_latitude,
-                              Latlng_longitude = request.Latlng_longitude,
-                              SupervisorId = request.SupervisorId,
-                              SupervisorName = (from spv in _context.Users
-                                                where spv.Id == request.SupervisorId
-                                                select spv.LastName.FullName(spv.FirstName)).FirstOrDefault(),
-                              RepairPersonId = request.RepairPersonId,
-                              RepairPersonName = (from rps in _context.Users
-                                                  where rps.Id == request.RepairPersonId
-                                                  select rps.LastName.FullName(rps.FirstName)).FirstOrDefault(),
-                              Content = request.Content,
-                              Status = request.Status,
-                              TimeBeginRequest = request.TimeBeginRequest.ToDateTimeFull(),
-                              TimeReceiveRequest = request.TimeReceiveRequest.ToDateTimeFull(),
-                              TimeFinish = request.TimeFinish.ToDateTimeFull(),
-                              TimeConfirm = request.TimeConfirm.ToDateTimeFull(),
-                              PictureRequest = request.PictureRequest.StringToList(),
-                              PictureFinish = request.PictureFinish.StringToList(),
-                              Note = request.Note
-                          }).ToList();
-            }
-            if (curUser.Role == RoleValues.Supervisor.ToDescription())
-            {
-                result = (from request in _context.Requests
-                          where request.SupervisorId == curUser.Id &&
-                                request.Status != RequestStatus.Approved.ToDescription()
-                          orderby request.TimeBeginRequest, request.TimeFinish
-                          select new ReturnRequest
-                          {
-                              Id = request.Id,
-                              Address = request.Address,
-                              Latlng_latitude = request.Latlng_latitude,
-                              Latlng_longitude = request.Latlng_longitude,
-                              SupervisorId = request.SupervisorId,
-                              SupervisorName = (from spv in _context.Users
-                                                where spv.Id == request.SupervisorId
-                                                select spv.LastName.FullName(spv.FirstName)).FirstOrDefault(),
-                              RepairPersonId = request.RepairPersonId,
-                              RepairPersonName = (from rps in _context.Users
-                                                  where rps.Id == request.RepairPersonId
-                                                  select rps.LastName.FullName(rps.FirstName)).FirstOrDefault(),
-                              Content = request.Content,
-                              Status = request.Status,
-                              TimeBeginRequest = request.TimeBeginRequest.ToDateTimeFull(),
-                              TimeReceiveRequest = request.TimeReceiveRequest.ToDateTimeFull(),
-                              TimeFinish = request.TimeFinish.ToDateTimeFull(),
-                              TimeConfirm = request.TimeConfirm.ToDateTimeFull(),
-                              PictureRequest = request.PictureRequest.StringToList(),
-                              PictureFinish = request.PictureFinish.StringToList(),
-                              Note = request.Note
-                          }).ToList();
-            }
+            List<ReturnRequest> listRequestReturn = GetListRequestReturn(curUser);
+            var result = (from request in listRequestReturn
+                          where request.Status != RequestStatus.Approved.ToDescription()
+                          select request).ToList();
+            return Ok(result);
+        }
+
+        [HttpGet("GetRequestByCompanyId")]
+        [Authorize]
+        public async Task<ActionResult> GetRequestByCompanyIdAsync(string companyId)
+        {
+            ApplicationUser curUser = await _userManager.GetUserAsync(HttpContext.User);
+
+            List<ReturnRequest> listRequestReturn = GetListRequestReturn(curUser);
+            var result = (from request in listRequestReturn
+                          where request.Status != RequestStatus.Approved.ToDescription() &&
+                                request.CompanyId == companyId
+                          select request).ToList();
+
+            return Ok(result);
+        }
+
+        [HttpGet("GetRequestByStatus")]
+        [Authorize]
+        public async Task<ActionResult> GetRequestByStatusAsync(string status)
+        {
+            ApplicationUser curUser = await _userManager.GetUserAsync(HttpContext.User);
+
+            List<ReturnRequest> listRequestReturn = GetListRequestReturn(curUser);
+            var result = (from request in listRequestReturn
+                          where request.Status == status
+                          select request).ToList();
+
+            return Ok(result);
+        }
+
+        [HttpGet("GetRequestByStatusAndCompanyId")]
+        [Authorize]
+        public async Task<ActionResult> GetRequestByStatusAndCompanyIdAsync(string status, string companyId)
+        {
+            ApplicationUser curUser = await _userManager.GetUserAsync(HttpContext.User);
+
+            List<ReturnRequest> listRequestReturn = GetListRequestReturn(curUser);
+            var result = (from request in listRequestReturn
+                          where request.Status == status && request.CompanyId == companyId
+                          select request).ToList();
+
             return Ok(result);
         }
 
@@ -377,6 +328,117 @@ namespace TmanagerService.Api.Controllers
             }
 
             return BadRequest(reportModel.RequestId + " does not exist");
+        }
+
+        public List<ReturnRequest> GetListRequestReturn(ApplicationUser curUser)
+        {
+            List<ReturnRequest> result = new List<ReturnRequest>();
+            if (curUser.Role == RoleValues.Admin.ToDescription())
+            {
+                List<string> listCompany = (from company in _context.Companys
+                                            where company.AdminId == curUser.Id
+                                            select company.Id).ToList();
+                result = (from request in _context.Requests
+                          where listCompany.Contains(request.CompanyId)
+                          orderby request.TimeBeginRequest, request.TimeFinish
+                          select new ReturnRequest
+                          {
+                              Id = request.Id,
+                              Address = request.Address,
+                              Latlng_latitude = request.Latlng_latitude,
+                              Latlng_longitude = request.Latlng_longitude,
+                              SupervisorId = request.SupervisorId,
+                              SupervisorName = (from spv in _context.Users
+                                                where spv.Id == request.SupervisorId
+                                                select spv.LastName.FullName(spv.FirstName)).FirstOrDefault(),
+                              RepairPersonId = request.RepairPersonId,
+                              RepairPersonName = (from rps in _context.Users
+                                                  where rps.Id == request.RepairPersonId
+                                                  select rps.LastName.FullName(rps.FirstName)).FirstOrDefault(),
+                              Content = request.Content,
+                              Status = request.Status,
+                              TimeBeginRequest = request.TimeBeginRequest.ToDateTimeFull(),
+                              TimeReceiveRequest = request.TimeReceiveRequest.ToDateTimeFull(),
+                              TimeFinish = request.TimeFinish.ToDateTimeFull(),
+                              TimeConfirm = request.TimeConfirm.ToDateTimeFull(),
+                              PictureRequest = request.PictureRequest.StringToList(),
+                              PictureFinish = request.PictureFinish.StringToList(),
+                              CompanyId = request.CompanyId,
+                              CompanyName = (from cpn in _context.Companys
+                                             where cpn.Id == request.CompanyId
+                                             select cpn.Name).FirstOrDefault(),
+                              Note = request.Note
+                          }).ToList();
+            }
+            if (curUser.Role == RoleValues.RepairPerson.ToDescription())
+            {
+                result = (from request in _context.Requests
+                          where request.CompanyId == curUser.CompanyId
+                          orderby request.TimeBeginRequest, request.TimeFinish
+                          select new ReturnRequest
+                          {
+                              Id = request.Id,
+                              Address = request.Address,
+                              Latlng_latitude = request.Latlng_latitude,
+                              Latlng_longitude = request.Latlng_longitude,
+                              SupervisorId = request.SupervisorId,
+                              SupervisorName = (from spv in _context.Users
+                                                where spv.Id == request.SupervisorId
+                                                select spv.LastName.FullName(spv.FirstName)).FirstOrDefault(),
+                              RepairPersonId = request.RepairPersonId,
+                              RepairPersonName = (from rps in _context.Users
+                                                  where rps.Id == request.RepairPersonId
+                                                  select rps.LastName.FullName(rps.FirstName)).FirstOrDefault(),
+                              Content = request.Content,
+                              Status = request.Status,
+                              TimeBeginRequest = request.TimeBeginRequest.ToDateTimeFull(),
+                              TimeReceiveRequest = request.TimeReceiveRequest.ToDateTimeFull(),
+                              TimeFinish = request.TimeFinish.ToDateTimeFull(),
+                              TimeConfirm = request.TimeConfirm.ToDateTimeFull(),
+                              PictureRequest = request.PictureRequest.StringToList(),
+                              PictureFinish = request.PictureFinish.StringToList(),
+                              CompanyId = request.CompanyId,
+                              CompanyName = (from cpn in _context.Companys
+                                             where cpn.Id == request.CompanyId
+                                             select cpn.Name).FirstOrDefault(),
+                              Note = request.Note
+                          }).ToList();
+            }
+            if (curUser.Role == RoleValues.Supervisor.ToDescription())
+            {
+                result = (from request in _context.Requests
+                          where request.SupervisorId == curUser.Id
+                          orderby request.TimeBeginRequest, request.TimeFinish
+                          select new ReturnRequest
+                          {
+                              Id = request.Id,
+                              Address = request.Address,
+                              Latlng_latitude = request.Latlng_latitude,
+                              Latlng_longitude = request.Latlng_longitude,
+                              SupervisorId = request.SupervisorId,
+                              SupervisorName = (from spv in _context.Users
+                                                where spv.Id == request.SupervisorId
+                                                select spv.LastName.FullName(spv.FirstName)).FirstOrDefault(),
+                              RepairPersonId = request.RepairPersonId,
+                              RepairPersonName = (from rps in _context.Users
+                                                  where rps.Id == request.RepairPersonId
+                                                  select rps.LastName.FullName(rps.FirstName)).FirstOrDefault(),
+                              Content = request.Content,
+                              Status = request.Status,
+                              TimeBeginRequest = request.TimeBeginRequest.ToDateTimeFull(),
+                              TimeReceiveRequest = request.TimeReceiveRequest.ToDateTimeFull(),
+                              TimeFinish = request.TimeFinish.ToDateTimeFull(),
+                              TimeConfirm = request.TimeConfirm.ToDateTimeFull(),
+                              PictureRequest = request.PictureRequest.StringToList(),
+                              PictureFinish = request.PictureFinish.StringToList(),
+                              CompanyId = request.CompanyId,
+                              CompanyName = (from cpn in _context.Companys
+                                             where cpn.Id == request.CompanyId
+                                             select cpn.Name).FirstOrDefault(),
+                              Note = request.Note
+                          }).ToList();
+            }
+            return result;
         }
     }
 }

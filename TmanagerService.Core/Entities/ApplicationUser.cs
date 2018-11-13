@@ -16,6 +16,8 @@ namespace TmanagerService.Core.Entities
         [Required]
         public bool IsEnabled { get; set; }
 
+        public string Avatar { get; set; }
+
         [Column(TypeName = "date")]
         public DateTime? DateOfBirth { get; set; }
 

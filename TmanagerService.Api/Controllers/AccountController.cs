@@ -291,6 +291,13 @@ namespace TmanagerService.Api.Controllers
             try
             {
                 ApplicationUser curUser = await _userManager.GetUserAsync(HttpContext.User);
+
+
+                if (_context.Users.Select(u => u.PhoneNumber.Equals(changeInformationUserModel.PhoneNumber)).FirstOrDefault())
+                    return BadRequest("Phone number already exists");
+                if (changeInformationUserModel.PhoneNumber != null)
+                    curUser.PhoneNumber = changeInformationUserModel.PhoneNumber;
+
                 DateTime TimeBegin = Convert.ToDateTime("01-01-1900");
                 DateTime TimeEnd = DateTime.Now.AddYears(-16);
                 DateTime? dateOfBirth = null;
@@ -308,8 +315,6 @@ namespace TmanagerService.Api.Controllers
                     curUser.FirstName = changeInformationUserModel.FirstName;
                 if (changeInformationUserModel.LastName != null)
                     curUser.LastName = changeInformationUserModel.LastName;
-                if (changeInformationUserModel.PhoneNumber != null)
-                    curUser.PhoneNumber = changeInformationUserModel.PhoneNumber;
 
                 var result = await _userManager.UpdateAsync(curUser);
                 if (result.Succeeded)
@@ -359,6 +364,7 @@ namespace TmanagerService.Api.Controllers
                 DateOfBirth = curUser.DateOfBirth.ToDate(),
                 Gender = curUser.Gender,
                 IsEnabled = curUser.IsEnabled,
+                Avatar = curUser.Avatar,
                 Note = curUser.Note
             };
             return Ok(infoUser);
@@ -401,6 +407,7 @@ namespace TmanagerService.Api.Controllers
                         //ListAreaWorking = GetListAreaWorkingInfo(staff),
                         DateOfBirth = staff.DateOfBirth.ToDate(),
                         Gender = staff.Gender,
+                        Avatar = staff.Avatar,
                         Note = staff.Note,
                         IsEnabled = staff.IsEnabled
                     });
@@ -439,6 +446,7 @@ namespace TmanagerService.Api.Controllers
                 Role = staff.Role,
                 PhoneNumber = staff.PhoneNumber,
                 Email = staff.Email,
+                Avatar = staff.Avatar,
                 //ListAreaWorking = GetListAreaWorkingInfo(staff),
                 DateOfBirth = staff.DateOfBirth.ToDate(),
                 Gender = staff.Gender,
@@ -468,6 +476,49 @@ namespace TmanagerService.Api.Controllers
                 return Ok(true);
             else
                 return BadRequest(result.Errors);
+        }
+
+        [HttpPut("UpdateAvatar")]
+        [Authorize]
+        public async Task<ActionResult> UpdateAvatar([FromForm] UpdateAvatarModel updateAvatarModel)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState.GetErrors());
+            }
+            try
+            {
+                ApplicationUser curUser = await _userManager.GetUserAsync(HttpContext.User);
+                string strPicture = UploadFileToCloudinary.UploadImage(updateAvatarModel.FileAvatar);
+                curUser.Avatar = strPicture;
+                await _userManager.UpdateAsync(curUser);
+                return Ok(true);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex);
+            }
+        }
+
+
+        [HttpGet("GetSupervisor")]
+        [Authorize(Roles = "Repair Person")]
+        public async Task<ActionResult> GetSupervisorAsync()
+        {
+            ApplicationUser curUser = await _userManager.GetUserAsync(HttpContext.User);
+            var result = (from supervisor in _context.Users
+                          from request in _context.Requests
+                          where request.CompanyId == curUser.CompanyId &&
+                                supervisor.Id == request.SupervisorId
+                          select new SupervisorInfo
+                          {
+                              SupervisorId = supervisor.Id,
+                              SupervisorFirstName = supervisor.FirstName,
+                              SupervisorLastName = supervisor.LastName,
+                              SupervisorFullName = supervisor.LastName + " " + supervisor.FirstName,
+                              SupervisorUserName = supervisor.UserName
+                          }).Distinct().ToList();
+            return Ok(result);
         }
 
         //private List<AreaWorkingValues> GetListAreaWorkingInfo(ApplicationUser user)
