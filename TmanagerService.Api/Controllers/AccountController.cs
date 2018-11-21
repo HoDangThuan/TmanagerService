@@ -365,6 +365,7 @@ namespace TmanagerService.Api.Controllers
                 Gender = curUser.Gender,
                 IsEnabled = curUser.IsEnabled,
                 Avatar = curUser.Avatar,
+                CompanyId = curUser.CompanyId,
                 Note = curUser.Note
             };
             return Ok(infoUser);
@@ -386,9 +387,9 @@ namespace TmanagerService.Api.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<ActionResult> GetStaffByAdmin()
         {
-            ApplicationUser curUser = await _userManager.GetUserAsync(HttpContext.User);
+            ApplicationUser admin = await _userManager.GetUserAsync(HttpContext.User);
             List<ApplicationUser> lstStf = (from us in _context.Users
-                                            where us.AdminId == curUser.Id
+                                            where us.AdminId == admin.Id
                                             select us).ToList();
             List<InformationUser> listStaff = new List<InformationUser>();
             foreach (var staff in lstStf)
@@ -408,6 +409,41 @@ namespace TmanagerService.Api.Controllers
                         DateOfBirth = staff.DateOfBirth.ToDate(),
                         Gender = staff.Gender,
                         Avatar = staff.Avatar,
+                        CompanyId = staff.CompanyId,
+                        Note = staff.Note,
+                        IsEnabled = staff.IsEnabled
+                    });
+            }
+            return Ok(listStaff);
+        }
+
+        [HttpGet("GetStaffByCompanyId")]
+        [Authorize(Roles = "Admin")]
+        public async Task<ActionResult> GetStaffByCompanyId(string companyId)
+        {
+            ApplicationUser admin = await _userManager.GetUserAsync(HttpContext.User);
+            List<ApplicationUser> lstStf = (from us in _context.Users
+                                            where us.AdminId == admin.Id && us.CompanyId == companyId
+                                            select us).ToList();
+            List<InformationUser> listStaff = new List<InformationUser>();
+            foreach (var staff in lstStf)
+            {
+                if (staff != null)
+                    listStaff.Add(new InformationUser
+                    {
+                        Id = staff.Id,
+                        UserName = staff.UserName,
+                        FirstName = staff.FirstName,
+                        LastName = staff.LastName,
+                        Address = staff.Address,
+                        Role = staff.Role,
+                        PhoneNumber = staff.PhoneNumber,
+                        Email = staff.Email,
+                        //ListAreaWorking = GetListAreaWorkingInfo(staff),
+                        DateOfBirth = staff.DateOfBirth.ToDate(),
+                        Gender = staff.Gender,
+                        Avatar = staff.Avatar,
+                        CompanyId = staff.CompanyId,
                         Note = staff.Note,
                         IsEnabled = staff.IsEnabled
                     });
@@ -450,6 +486,7 @@ namespace TmanagerService.Api.Controllers
                 //ListAreaWorking = GetListAreaWorkingInfo(staff),
                 DateOfBirth = staff.DateOfBirth.ToDate(),
                 Gender = staff.Gender,
+                CompanyId = staff.CompanyId,
                 Note = staff.Note,
                 IsEnabled = staff.IsEnabled
             });
