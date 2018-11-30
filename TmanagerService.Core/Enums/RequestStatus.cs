@@ -11,6 +11,8 @@ namespace TmanagerService.Core.Enums
         [Description("Done")]
         Done = 3,
         [Description("Approved")]
-        Approved = 4
+        Approved = 4,
+        [Description("Closed")]
+        Closed = 5
     }
 }

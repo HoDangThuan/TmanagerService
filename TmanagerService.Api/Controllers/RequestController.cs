@@ -54,8 +54,8 @@ namespace TmanagerService.Api.Controllers
                                where cmp.Id == insertRequestModel.CompanyId
                                select cmp).FirstOrDefault();
             if (company == null)
-                return BadRequest("Company assignto required");
-            DateTime now = DateTime.Now;
+                return BadRequest("Company assign to required");
+            DateTime utcNow = DateTime.UtcNow;
             var request = new Request
             {
                 //Id = requestId,
@@ -63,7 +63,7 @@ namespace TmanagerService.Api.Controllers
                 Content = insertRequestModel.Content,
                 Latlng_latitude = insertRequestModel.Latlng_latitude,
                 Latlng_longitude = insertRequestModel.Latlng_longitude,
-                TimeBeginRequest = now,
+                TimeBeginRequest = utcNow,
                 PictureRequest = strPictureRequest,
                 Status = RequestStatus.Waiting.ToDescription(),
                 Supervisor = curUser,
@@ -100,9 +100,9 @@ namespace TmanagerService.Api.Controllers
             {
                 try
                 {
-                    DateTime now = DateTime.Now;
+                    DateTime utcNow = DateTime.UtcNow;
                     request.RepairPerson = curUser;
-                    request.TimeReceiveRequest = now;
+                    request.TimeReceiveRequest = utcNow;
                     request.Status = RequestStatus.ToDo.ToDescription();
                     _context.Requests.Update(request);
                     await _context.SaveChangesAsync();
@@ -140,8 +140,9 @@ namespace TmanagerService.Api.Controllers
                         if (repairPersonFinishModel.ListPictureFinish.Count > 5)
                             return BadRequest("Cannot upload more than 5 picture");
                         string strPictureFinish = UploadFileToCloudinary.UploadListImage(repairPersonFinishModel.ListPictureFinish).ListToString();
-                        DateTime now = DateTime.Now;
-                        request.TimeFinish = now;
+
+                        DateTime utcNow = DateTime.UtcNow;
+                        request.TimeFinish = utcNow;
                         request.Status = RequestStatus.Done.ToDescription();
 
                         request.PictureFinish = strPictureFinish;
@@ -183,8 +184,8 @@ namespace TmanagerService.Api.Controllers
                 {
                     try
                     {
-                        DateTime now = DateTime.Now;
-                        request.TimeConfirm = now;
+                        DateTime utcNow = DateTime.UtcNow;
+                        request.TimeConfirm = utcNow;
                         request.Status = RequestStatus.Approved.ToDescription();
 
                         _context.Requests.Update(request);
@@ -243,57 +244,87 @@ namespace TmanagerService.Api.Controllers
 
         [HttpGet("GetRequest")] 
         [Authorize]
-        public async Task<ActionResult> GetRequestAsync()
+        public async Task<ActionResult> GetRequestAsync(int pageSize=10, int pageIndex=1)
         {
             ApplicationUser curUser = await _userManager.GetUserAsync(HttpContext.User);
+
             List<ReturnRequest> listRequestReturn = GetListRequestReturn(curUser);
-            var result = (from request in listRequestReturn
-                          where request.Status != RequestStatus.Approved.ToDescription()
-                          select request).ToList();
-            return Ok(result);
+            int lstSize = listRequestReturn.Count(),
+                start = (pageIndex - 1) * pageSize;
+            if (start > lstSize-1)
+                return Ok(new List<ReturnRequest>());
+            if (start + pageSize > lstSize)
+                return Ok(listRequestReturn.GetRange(start, lstSize - start));
+            else
+                return Ok(listRequestReturn.GetRange(start, pageSize));
         }
 
         [HttpGet("GetRequestByCompanyId")]
         [Authorize]
-        public async Task<ActionResult> GetRequestByCompanyIdAsync(string companyId)
+        public async Task<ActionResult> GetRequestByCompanyIdAsync(
+                string companyId, int pageSize=10, int pageIndex=1)
         {
             ApplicationUser curUser = await _userManager.GetUserAsync(HttpContext.User);
 
             List<ReturnRequest> listRequestReturn = GetListRequestReturn(curUser);
-            var result = (from request in listRequestReturn
-                          where request.Status != RequestStatus.Approved.ToDescription() &&
-                                request.CompanyId == companyId
-                          select request).ToList();
+            var result = (from request in GetListRequestReturn(curUser)
+                          where request.CompanyId == companyId
+                          select request)
+                          .ToList();
 
-            return Ok(result);
+            int lstSize = result.Count(),
+                start = (pageIndex - 1) * pageSize;
+            if (start > lstSize - 1)
+                return Ok(new List<ReturnRequest>());
+            if (start + pageSize > lstSize)
+                return Ok(result.GetRange(start, lstSize - start));
+            else
+                return Ok(result.GetRange(start, pageSize));
         }
 
         [HttpGet("GetRequestByStatus")]
         [Authorize]
-        public async Task<ActionResult> GetRequestByStatusAsync(string status)
+        public async Task<ActionResult> GetRequestByStatusAsync(string status, int pageSize=10, int pageIndex=1)
         {
             ApplicationUser curUser = await _userManager.GetUserAsync(HttpContext.User);
 
             List<ReturnRequest> listRequestReturn = GetListRequestReturn(curUser);
             var result = (from request in listRequestReturn
                           where request.Status == status
-                          select request).ToList();
+                          select request)
+                          .ToList();
 
-            return Ok(result);
+            int lstSize = result.Count(),
+                start = (pageIndex - 1) * pageSize;
+            if (start > lstSize - 1)
+                return Ok(new List<ReturnRequest>());
+            if (start + pageSize > lstSize)
+                return Ok(result.GetRange(start, lstSize - start));
+            else
+                return Ok(result.GetRange(start, pageSize));
         }
 
         [HttpGet("GetRequestByStatusAndCompanyId")]
         [Authorize]
-        public async Task<ActionResult> GetRequestByStatusAndCompanyIdAsync(string status, string companyId)
+        public async Task<ActionResult> GetRequestByStatusAndCompanyIdAsync(
+            string status, string companyId, int pageSize=10, int pageIndex=1)
         {
             ApplicationUser curUser = await _userManager.GetUserAsync(HttpContext.User);
 
             List<ReturnRequest> listRequestReturn = GetListRequestReturn(curUser);
             var result = (from request in listRequestReturn
                           where request.Status == status && request.CompanyId == companyId
-                          select request).ToList();
+                          select request)
+                          .ToList();
 
-            return Ok(result);
+            int lstSize = result.Count(),
+                start = (pageIndex - 1) * pageSize;
+            if (start > lstSize - 1)
+                return Ok(new List<ReturnRequest>());
+            if (start + pageSize > lstSize)
+                return Ok(result.GetRange(start, lstSize - start));
+            else
+                return Ok(result.GetRange(start, pageSize));
         }
 
         [HttpPut("Report")]
@@ -340,6 +371,7 @@ namespace TmanagerService.Api.Controllers
                                             select company.Id).ToList();
                 result = (from request in _context.Requests
                           where listCompany.Contains(request.CompanyId)
+                                && request.Status != RequestStatus.Closed.ToDescription()
                           orderby request.TimeBeginRequest descending, request.TimeFinish descending
                           select new ReturnRequest
                           {
@@ -374,6 +406,7 @@ namespace TmanagerService.Api.Controllers
             {
                 result = (from request in _context.Requests
                           where request.CompanyId == curUser.CompanyId
+                                && request.Status != RequestStatus.Closed.ToDescription()
                           orderby request.TimeBeginRequest descending, request.TimeFinish descending
                           select new ReturnRequest
                           {
@@ -408,6 +441,7 @@ namespace TmanagerService.Api.Controllers
             {
                 result = (from request in _context.Requests
                           where request.SupervisorId == curUser.Id
+                                && request.Status != RequestStatus.Closed.ToDescription()
                           orderby request.TimeBeginRequest descending, request.TimeFinish descending
                           select new ReturnRequest
                           {
@@ -439,6 +473,13 @@ namespace TmanagerService.Api.Controllers
                           }).ToList();
             }
             return result;
+
+            //int lstSize = result.Count(),
+            //    start = (pageIndex-1)*pageSize;
+            //if (start + pageSize > lstSize)
+            //    return result.GetRange(start, lstSize - start);
+            //else
+            //    return result.GetRange(start, pageSize);
         }
     }
 }

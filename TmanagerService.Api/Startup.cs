@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Builder;
+﻿using Hangfire;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -6,7 +7,6 @@ using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using System;
 using TmanagerService.Api.App_Start;
 using TmanagerService.Api.Middleware;
 using TmanagerService.Api.Models;
@@ -33,19 +33,6 @@ namespace TmanagerService.Api
                 options.CheckConsentNeeded = context => true;
                 options.MinimumSameSitePolicy = SameSiteMode.None;
             });
-
-            services.AddTransient<TokenManagerMiddleware>();
-            services.AddTransient<ITokenManager, TokenManager>();
-            services.AddTransient<IEmailSender, EmailSender>(i =>
-                new EmailSender(
-                    Configuration["EmailSender:Host"],
-                    Configuration.GetValue<int>("EmailSender:Port"),
-                    Configuration.GetValue<bool>("EmailSender:EnableSSL"),
-                    Configuration["EmailSender:UserName"],
-                    Configuration["EmailSender:Password"]
-                )
-            );
-
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
 
             //services.AddMvc(config =>
@@ -60,7 +47,22 @@ namespace TmanagerService.Api
             services.AddIdentity<ApplicationUser, IdentityRole>(IdentityConfig.Config)
                 .AddEntityFrameworkStores<TmanagerServiceContext>()
                 .AddDefaultTokenProviders();
-            
+
+            services.AddTransient<TokenManagerMiddleware>();
+            services.AddTransient<ITokenManager, TokenManager>();
+            services.AddTransient<IEmailSender, EmailSender>(i =>
+                new EmailSender(
+                    Configuration["EmailSender:Host"],
+                    Configuration.GetValue<int>("EmailSender:Port"),
+                    Configuration.GetValue<bool>("EmailSender:EnableSSL"),
+                    Configuration["EmailSender:UserName"],
+                    Configuration["EmailSender:Password"]
+                )
+            );
+
+            services.AddHangfire(x => x.UseSqlServerStorage(Configuration["identity_db_connection_string"]));
+
+
             services.AddAuthentication(AuthenticationConfig.Config)
                 .AddJwtBearer(JwtBearerConfig.Config);
         }
@@ -84,6 +86,11 @@ namespace TmanagerService.Api
             app.UseAuthentication();
             app.UseMiddleware<TokenManagerMiddleware>();
             app.UseMiddleware<CheckEnableUserMiddleware>();
+
+            //GlobalConfiguration.Configuration.UseSqlServerStorage(Configuration["identity_db_connection_string"]);
+
+            app.UseHangfireDashboard();
+            app.UseHangfireServer();
 
             app.UseMvc(routes =>
             {

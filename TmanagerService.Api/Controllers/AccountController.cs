@@ -51,8 +51,10 @@ namespace TmanagerService.Api.Controllers
             }
 
             var user = await _userManager.FindByNameAsync(loginModel.UserName);
-            if (!user.IsEnabled)
-                return StatusCode(403);
+            var company_user = _context.Companys.FirstOrDefault(c => c.Id == user.CompanyId);
+
+            if (!user.IsEnabled || !company_user.Status)
+                return BadRequest("Account is blocked");
 
             var result = await _signInManager.PasswordSignInAsync(loginModel.UserName, loginModel.Password, loginModel.RememberMe, lockoutOnFailure: true);
             if (result.Succeeded)
@@ -388,67 +390,70 @@ namespace TmanagerService.Api.Controllers
         public async Task<ActionResult> GetStaffByAdmin()
         {
             ApplicationUser admin = await _userManager.GetUserAsync(HttpContext.User);
-            List<ApplicationUser> lstStf = (from us in _context.Users
-                                            where us.AdminId == admin.Id
-                                            select us).ToList();
-            List<InformationUser> listStaff = new List<InformationUser>();
-            foreach (var staff in lstStf)
-            {
-                if (staff != null)
-                    listStaff.Add(new InformationUser
-                    {
-                        Id = staff.Id,
-                        UserName = staff.UserName,
-                        FirstName = staff.FirstName,
-                        LastName = staff.LastName,
-                        Address = staff.Address,
-                        Role = staff.Role,
-                        PhoneNumber = staff.PhoneNumber,
-                        Email = staff.Email,
-                        //ListAreaWorking = GetListAreaWorkingInfo(staff),
-                        DateOfBirth = staff.DateOfBirth.ToDate(),
-                        Gender = staff.Gender,
-                        Avatar = staff.Avatar,
-                        CompanyId = staff.CompanyId,
-                        Note = staff.Note,
-                        IsEnabled = staff.IsEnabled
-                    });
-            }
-            return Ok(listStaff);
+            List<InformationUser> lstStf = (from staff in _context.Users
+                                            where staff.AdminId == admin.Id
+                                            select new InformationUser
+                                            {
+                                                Id = staff.Id,
+                                                UserName = staff.UserName,
+                                                FirstName = staff.FirstName,
+                                                LastName = staff.LastName,
+                                                Address = staff.Address,
+                                                Role = staff.Role,
+                                                PhoneNumber = staff.PhoneNumber,
+                                                Email = staff.Email,
+                                                DateOfBirth = staff.DateOfBirth.ToDate(),
+                                                Gender = staff.Gender,
+                                                Avatar = staff.Avatar,
+                                                CompanyId = staff.CompanyId,
+                                                Note = staff.Note,
+                                                IsEnabled = staff.IsEnabled
+                                            }).ToList();
+            return Ok(lstStf);
+            //int lstSize = lstStf.Count(),
+            //    start = (pageIndex - 1) * pageSize;
+            //if (start + pageSize > lstSize)
+            //    return Ok(lstStf.GetRange(start, lstSize - start));
+            //else
+            //    return Ok(lstStf.GetRange(start, pageSize));
         }
 
         [HttpGet("GetStaffByCompanyId")]
         [Authorize(Roles = "Admin")]
-        public async Task<ActionResult> GetStaffByCompanyId(string companyId)
+        public async Task<ActionResult> GetStaffByCompanyId(
+                string companyId
+                //, int pageSize, int pageIndex
+            )
         {
             ApplicationUser admin = await _userManager.GetUserAsync(HttpContext.User);
-            List<ApplicationUser> lstStf = (from us in _context.Users
-                                            where us.AdminId == admin.Id && us.CompanyId == companyId
-                                            select us).ToList();
-            List<InformationUser> listStaff = new List<InformationUser>();
-            foreach (var staff in lstStf)
-            {
-                if (staff != null)
-                    listStaff.Add(new InformationUser
-                    {
-                        Id = staff.Id,
-                        UserName = staff.UserName,
-                        FirstName = staff.FirstName,
-                        LastName = staff.LastName,
-                        Address = staff.Address,
-                        Role = staff.Role,
-                        PhoneNumber = staff.PhoneNumber,
-                        Email = staff.Email,
-                        //ListAreaWorking = GetListAreaWorkingInfo(staff),
-                        DateOfBirth = staff.DateOfBirth.ToDate(),
-                        Gender = staff.Gender,
-                        Avatar = staff.Avatar,
-                        CompanyId = staff.CompanyId,
-                        Note = staff.Note,
-                        IsEnabled = staff.IsEnabled
-                    });
-            }
-            return Ok(listStaff);
+            List<InformationUser> lstStf = (from staff in _context.Users
+                                            where staff.AdminId == admin.Id && staff.CompanyId == companyId
+                                            select new InformationUser
+                                            {
+                                                Id = staff.Id,
+                                                UserName = staff.UserName,
+                                                FirstName = staff.FirstName,
+                                                LastName = staff.LastName,
+                                                Address = staff.Address,
+                                                Role = staff.Role,
+                                                PhoneNumber = staff.PhoneNumber,
+                                                Email = staff.Email,
+                                                DateOfBirth = staff.DateOfBirth.ToDate(),
+                                                Gender = staff.Gender,
+                                                Avatar = staff.Avatar,
+                                                CompanyId = staff.CompanyId,
+                                                Note = staff.Note,
+                                                IsEnabled = staff.IsEnabled
+                                            }).ToList();
+
+            return Ok(lstStf);
+
+            //int lstSize = lstStf.Count(),
+            //    start = (pageIndex - 1) * pageSize;
+            //if (start + pageSize > lstSize)
+            //    return Ok(lstStf.GetRange(start, lstSize - start));
+            //else
+            //    return Ok(lstStf.GetRange(start, pageSize));
         }
 
         [HttpGet("GetStaffInfoById")]
@@ -456,22 +461,6 @@ namespace TmanagerService.Api.Controllers
         public async Task<ActionResult> GetStaffByAdmin(string staffId)
         {
             ApplicationUser staff = await _userManager.FindByIdAsync(staffId);
-            //List<AreaWorkingValues> listAreaWorking = new List<AreaWorkingValues>();
-            //AreaWorkingValues areaWorking = new AreaWorkingValues();
-            //foreach (var areaWorkingId in String_List.ToList(staff.ListAreaWorkingId))
-            //{
-            //    areaWorking = (from arW in _context.AreaWorkings
-            //                   where arW.Id == areaWorkingId
-            //                   select new AreaWorkingValues
-            //                   {
-            //                       AreaId = arW.Id,
-            //                       AdminId = arW.AdminId,
-            //                       AreaName = arW.AreaName,
-            //                       Status = arW.Status
-            //                   }).FirstOrDefault();
-            //    if (areaWorking != null)
-            //        listAreaWorking.Add(areaWorking);
-            //}
             return Ok(new InformationUser
             {
                 Id = staff.Id,
@@ -483,7 +472,6 @@ namespace TmanagerService.Api.Controllers
                 PhoneNumber = staff.PhoneNumber,
                 Email = staff.Email,
                 Avatar = staff.Avatar,
-                //ListAreaWorking = GetListAreaWorkingInfo(staff),
                 DateOfBirth = staff.DateOfBirth.ToDate(),
                 Gender = staff.Gender,
                 CompanyId = staff.CompanyId,
@@ -503,9 +491,6 @@ namespace TmanagerService.Api.Controllers
                 return BadRequest("You are not allowed");
 
             user.IsEnabled = !user.IsEnabled;
-
-            //user.LockoutEnabled = true;
-            //user.LockoutEnd = DateTime.UtcNow.AddYears(1000);
 
             var result = await _userManager.UpdateAsync(user);
 
@@ -557,36 +542,6 @@ namespace TmanagerService.Api.Controllers
                           }).Distinct().ToList();
             return Ok(result);
         }
-
-        //private List<AreaWorkingValues> GetListAreaWorkingInfo(ApplicationUser user)
-        //{
-        //    if (user.ListAreaWorkingId == null)
-        //        return null;
-        //    List<AreaWorkingValues> listAreaWorking = new List<AreaWorkingValues>();
-        //    AreaWorkingValues areaWorking = new AreaWorkingValues();
-        //    string adminRoleStr = RoleValues.Admin.ToDescription();
-        //    foreach (var areaWorkingId in String_List.ToList(user.ListAreaWorkingId))
-        //    {
-        //        areaWorking = (from arW in _context.AreaWorkings
-        //                       where arW.Id == areaWorkingId &&
-        //                            (
-        //                                (arW.Status && user.Role != adminRoleStr) ||
-        //                                (user.Role == adminRoleStr)
-        //                            )
-        //                       select new AreaWorkingValues
-        //                       {
-        //                           AreaId = arW.Id,
-        //                           AdminId = arW.AdminId,
-        //                           AreaName = arW.AreaName,
-        //                           Status = arW.Status
-        //                       }).FirstOrDefault();
-        //        if (areaWorking != null)
-        //            listAreaWorking.Add(areaWorking);
-        //    }
-        //    if (listAreaWorking.Count > 0)
-        //        return listAreaWorking;
-        //    return null;
-        //}
 
     }
 }

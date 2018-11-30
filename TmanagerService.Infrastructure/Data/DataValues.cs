@@ -43,13 +43,13 @@ namespace TmanagerService.Infrastructure.Data
 
             return new List<Company>()
             {
-                new Company { AdminId = adminId, Name = companyName01, Address = "48 Cao Thắng, Đà Nẵng", Status = true, IsDepartmentOfConstruction = true,
+                new Company { AdminId = adminId, Name = companyName01, Address = "48 Cao Thắng, Đà Nẵng", Status = true, IsDepartmentOfConstruction = false,
                     Logo = "http://res.cloudinary.com/dj9j7j4sf/image/upload/v1541472243/cj8pkzjrj41abqcfo0kl.png" },
                 new Company { AdminId = adminId, Name = "Công ty xây dựng 2", Address = "138 Đống Đa, Đà Nẵng", Status = true, IsDepartmentOfConstruction = false,
                     Logo = "http://res.cloudinary.com/dj9j7j4sf/image/upload/v1541472244/uoslpdsifawv5gdzeor5.png" },
                 new Company { AdminId = adminId, Name = "Công ty xây dựng 3", Address = "55 Nguyễn Du, Đà Nẵng", Status = true, IsDepartmentOfConstruction = false,
                     Logo = "http://res.cloudinary.com/dj9j7j4sf/image/upload/v1541472245/klaupqhjuta8bsfjoygu.png" },
-                new Company { AdminId = adminId, Name = DepartmentOfConstruction, Address = "Tầng 12, tầng 13 - Trung tâm hành chính - 24 Trần Phú, quận Hải Châu, thành phố Đà Nẵng", Status = true, IsDepartmentOfConstruction = false,
+                new Company { AdminId = adminId, Name = DepartmentOfConstruction, Address = "Tầng 12, tầng 13 - Trung tâm hành chính - 24 Trần Phú, quận Hải Châu, thành phố Đà Nẵng", Status = true, IsDepartmentOfConstruction = true,
                     Logo = "http://res.cloudinary.com/dj9j7j4sf/image/upload/v1541472603/fyx5d6frnnb2u5mvlvjp.jpg" }
             };
         }
@@ -112,8 +112,10 @@ namespace TmanagerService.Infrastructure.Data
         public static async Task<IEnumerable<Request>> RequestDataAsync(TmanagerServiceContext dbContext, UserManager<ApplicationUser> userManager)
         {
             ApplicationUser admin = await userManager.FindByNameAsync(AdminData(dbContext).ToArray().FirstOrDefault().UserName);
-            ApplicationUser supervisor = await userManager.FindByNameAsync((await SupervisorDataAsync(dbContext, userManager)).ToArray().FirstOrDefault().UserName);
-            ApplicationUser repairPerson = await userManager.FindByNameAsync((await RepairPersonDataAsync(dbContext, userManager)).ToArray().FirstOrDefault().UserName);
+            ApplicationUser supervisor01 = await userManager.FindByNameAsync((await SupervisorDataAsync(dbContext, userManager)).ToArray().ElementAt(0).UserName);
+            ApplicationUser supervisor02 = await userManager.FindByNameAsync((await SupervisorDataAsync(dbContext, userManager)).ToArray().ElementAt(1).UserName);
+            ApplicationUser repairPerson01 = await userManager.FindByNameAsync((await RepairPersonDataAsync(dbContext, userManager)).ToArray().ElementAt(0).UserName);
+            ApplicationUser repairPerson02 = await userManager.FindByNameAsync((await RepairPersonDataAsync(dbContext, userManager)).ToArray().ElementAt(1).UserName);
             //AreaWorking areaWorking = dbContext.AreaWorkings.FirstOrDefault(a => a.AreaName == areaWorkingName01);
             //AreaWorking[] areaWorkingData = dbContext.AreaWorkings.ToArray();
             Company company = dbContext.Companys.FirstOrDefault(c => c.Name == companyName01);
@@ -122,18 +124,70 @@ namespace TmanagerService.Infrastructure.Data
             {
                 new Request { Content = "ổ gà có trứng gà", PictureRequest = "http://res.cloudinary.com/dj9j7j4sf/image/upload/v1541144270/bbhvdqd1jz9xxrcvszc3.jpg,NStr~| http://res.cloudinary.com/dj9j7j4sf/image/upload/v1541144270/xpr0nra3lfk1fxtqhodz.jpg,NStr~| http://res.cloudinary.com/dj9j7j4sf/image/upload/v1541144271/dd8zsydl9hxhwt3qzcrl.jpg",
                 PictureFinish = "http://res.cloudinary.com/dj9j7j4sf/image/upload/v1541144224/np7rbqxwektldyxw1kat.jpg,NStr~| http://res.cloudinary.com/dj9j7j4sf/image/upload/v1541144225/sdapicoqbredxjrfdf5u.jpg",
-                Latlng_latitude = 16.047194, Latlng_longitude = 108.211754, Supervisor = supervisor, RepairPerson = repairPerson,
+                Latlng_latitude = 16.047194, Latlng_longitude = 108.211754, Supervisor = supervisor01, RepairPerson = repairPerson01,
                 Address="403 Đường Trưng Nữ Vương, Phường Hòa Thuận Tây, Quận Hải Châu, Thành Phố Đà Nẵng, Hòa Thuận Nam, Hải Châu, Đà Nẵng 550000, Việt Nam",
                 Status = RequestStatus.Approved.ToDescription(), Company = company,
                 TimeBeginRequest =  now.AddSeconds(-2563125), TimeReceiveRequest = now.AddSeconds(-2043125),
                 TimeFinish = now.AddSeconds(-563425), TimeConfirm = now.AddSeconds(-253125) },
+
+                new Request { Content = "ổ vịt, ổ trâu, ổ khủng long", PictureRequest = "http://res.cloudinary.com/dj9j7j4sf/image/upload/v1541144161/bfdm3bknugvdfoh5u6ec.jpg",
+                PictureFinish = "http://res.cloudinary.com/dj9j7j4sf/image/upload/v1541144226/zotgb0n59b3qgpq8xour.jpg,NStr~| http://res.cloudinary.com/dj9j7j4sf/image/upload/v1541144226/bkdzmmsu3gbeny0egdbf.jpg",
+                Latlng_latitude = 16.041583, Latlng_longitude = 108.211631, Supervisor = supervisor01, RepairPerson = repairPerson01,
+                Address="86-118 Lương Nhữ Hộc, Hoà Cường Bắc, Hải Châu, Đà Nẵng 550000, Việt Nam",
+                Status = RequestStatus.Done.ToDescription(), Company = company,
+                TimeBeginRequest =  now.AddSeconds(-3563125), TimeReceiveRequest = now.AddSeconds(-3043125),
+                TimeFinish = now.AddSeconds(-1563425) },
+
+                new Request { Content = "ổ gà có trứng gà", PictureRequest = "http://res.cloudinary.com/dj9j7j4sf/image/upload/v1541144271/dd8zsydl9hxhwt3qzcrl.jpg",
+                PictureFinish = "http://res.cloudinary.com/dj9j7j4sf/image/upload/v1541144225/sdapicoqbredxjrfdf5u.jpg",
+                Latlng_latitude = 16.047194, Latlng_longitude = 108.211754, Supervisor = supervisor01, RepairPerson = repairPerson01,
+                Address="403 Đường Trưng Nữ Vương, Phường Hòa Thuận Tây, Quận Hải Châu, Thành Phố Đà Nẵng, Hòa Thuận Nam, Hải Châu, Đà Nẵng 550000, Việt Nam",
+                Status = RequestStatus.ToDo.ToDescription(), Company = company,
+                TimeBeginRequest =  now.AddSeconds(-2563125), TimeReceiveRequest = now.AddSeconds(-2043125),
+                TimeFinish = now.AddSeconds(-563425), TimeConfirm = now.AddSeconds(-253125) },
+
                 new Request { Content = "ổ vịt, ổ trâu, ổ khủng long", PictureRequest = "http://res.cloudinary.com/dj9j7j4sf/image/upload/v1541144160/yvswxuhbcbbzrba2ti10.jpg,NStr~| http://res.cloudinary.com/dj9j7j4sf/image/upload/v1541144161/bfdm3bknugvdfoh5u6ec.jpg",
                 PictureFinish = "http://res.cloudinary.com/dj9j7j4sf/image/upload/v1541144225/sdapicoqbredxjrfdf5u.jpg,NStr~| http://res.cloudinary.com/dj9j7j4sf/image/upload/v1541144226/zotgb0n59b3qgpq8xour.jpg,NStr~| http://res.cloudinary.com/dj9j7j4sf/image/upload/v1541144226/bkdzmmsu3gbeny0egdbf.jpg",
-                Latlng_latitude = 16.041583, Latlng_longitude = 108.211631, Supervisor = supervisor, RepairPerson = repairPerson,
+                Latlng_latitude = 16.041583, Latlng_longitude = 108.211631, Supervisor = supervisor01, RepairPerson = repairPerson01,
                 Address="86-118 Lương Nhữ Hộc, Hoà Cường Bắc, Hải Châu, Đà Nẵng 550000, Việt Nam",
-                Status = RequestStatus.Approved.ToDescription(), Company = company,
+                Status = RequestStatus.ToDo.ToDescription(), Company = company,
                 TimeBeginRequest =  now.AddSeconds(-3563125), TimeReceiveRequest = now.AddSeconds(-3043125),
-                TimeFinish = now.AddSeconds(-1563425), TimeConfirm = now.AddSeconds(-1253125) }
+                TimeFinish = now.AddSeconds(-1563425) },
+
+
+
+                new Request { Content = "ổ gà có trứng gà", PictureRequest = "http://res.cloudinary.com/dj9j7j4sf/image/upload/v1541144270/bbhvdqd1jz9xxrcvszc3.jpg,NStr~| http://res.cloudinary.com/dj9j7j4sf/image/upload/v1541144270/xpr0nra3lfk1fxtqhodz.jpg,NStr~| http://res.cloudinary.com/dj9j7j4sf/image/upload/v1541144271/dd8zsydl9hxhwt3qzcrl.jpg",
+                PictureFinish = "http://res.cloudinary.com/dj9j7j4sf/image/upload/v1541144224/np7rbqxwektldyxw1kat.jpg,NStr~| http://res.cloudinary.com/dj9j7j4sf/image/upload/v1541144225/sdapicoqbredxjrfdf5u.jpg",
+                Latlng_latitude = 16.047194, Latlng_longitude = 108.211754, Supervisor = supervisor02, RepairPerson = repairPerson01,
+                Address="403 Đường Trưng Nữ Vương, Phường Hòa Thuận Tây, Quận Hải Châu, Thành Phố Đà Nẵng, Hòa Thuận Nam, Hải Châu, Đà Nẵng 550000, Việt Nam",
+                Status = RequestStatus.Approved.ToDescription(), Company = company,
+                TimeBeginRequest =  now.AddSeconds(-2563125), TimeReceiveRequest = now.AddSeconds(-2043125),
+                TimeFinish = now.AddSeconds(-563425), TimeConfirm = now.AddSeconds(-253125) },
+
+                new Request { Content = "ổ vịt, ổ trâu, ổ khủng long", PictureRequest = "http://res.cloudinary.com/dj9j7j4sf/image/upload/v1541144161/bfdm3bknugvdfoh5u6ec.jpg",
+                PictureFinish = "http://res.cloudinary.com/dj9j7j4sf/image/upload/v1541144226/zotgb0n59b3qgpq8xour.jpg,NStr~| http://res.cloudinary.com/dj9j7j4sf/image/upload/v1541144226/bkdzmmsu3gbeny0egdbf.jpg",
+                Latlng_latitude = 16.041583, Latlng_longitude = 108.211631, Supervisor = supervisor02, RepairPerson = repairPerson01,
+                Address="86-118 Lương Nhữ Hộc, Hoà Cường Bắc, Hải Châu, Đà Nẵng 550000, Việt Nam",
+                Status = RequestStatus.Done.ToDescription(), Company = company,
+                TimeBeginRequest =  now.AddSeconds(-3563125), TimeReceiveRequest = now.AddSeconds(-3043125),
+                TimeFinish = now.AddSeconds(-1563425) },
+
+                new Request { Content = "ổ gà có trứng gà", PictureRequest = "http://res.cloudinary.com/dj9j7j4sf/image/upload/v1541144271/dd8zsydl9hxhwt3qzcrl.jpg",
+                PictureFinish = "http://res.cloudinary.com/dj9j7j4sf/image/upload/v1541144225/sdapicoqbredxjrfdf5u.jpg",
+                Latlng_latitude = 16.047194, Latlng_longitude = 108.211754, Supervisor = supervisor02, RepairPerson = repairPerson01,
+                Address="403 Đường Trưng Nữ Vương, Phường Hòa Thuận Tây, Quận Hải Châu, Thành Phố Đà Nẵng, Hòa Thuận Nam, Hải Châu, Đà Nẵng 550000, Việt Nam",
+                Status = RequestStatus.ToDo.ToDescription(), Company = company,
+                TimeBeginRequest =  now.AddSeconds(-2563125), TimeReceiveRequest = now.AddSeconds(-2043125),
+                TimeFinish = now.AddSeconds(-563425), TimeConfirm = now.AddSeconds(-253125) },
+
+                new Request { Content = "ổ vịt, ổ trâu, ổ khủng long", PictureRequest = "http://res.cloudinary.com/dj9j7j4sf/image/upload/v1541144160/yvswxuhbcbbzrba2ti10.jpg,NStr~| http://res.cloudinary.com/dj9j7j4sf/image/upload/v1541144161/bfdm3bknugvdfoh5u6ec.jpg",
+                PictureFinish = "http://res.cloudinary.com/dj9j7j4sf/image/upload/v1541144225/sdapicoqbredxjrfdf5u.jpg,NStr~| http://res.cloudinary.com/dj9j7j4sf/image/upload/v1541144226/zotgb0n59b3qgpq8xour.jpg,NStr~| http://res.cloudinary.com/dj9j7j4sf/image/upload/v1541144226/bkdzmmsu3gbeny0egdbf.jpg",
+                Latlng_latitude = 16.041583, Latlng_longitude = 108.211631, Supervisor = supervisor02, RepairPerson = repairPerson01,
+                Address="86-118 Lương Nhữ Hộc, Hoà Cường Bắc, Hải Châu, Đà Nẵng 550000, Việt Nam",
+                Status = RequestStatus.ToDo.ToDescription(), Company = company,
+                TimeBeginRequest =  now.AddSeconds(-3563125), TimeReceiveRequest = now.AddSeconds(-3043125),
+                TimeFinish = now.AddSeconds(-1563425) }
+
             };
         }
 

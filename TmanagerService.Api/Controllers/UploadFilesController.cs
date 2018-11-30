@@ -12,6 +12,7 @@ namespace TmanagerService.Api.Controllers
     public class UploadFilesController : ControllerBase
     {
         [HttpPost]
+        [Authorize]
         //[Authorize(Roles = "Supervisor, Repair Person")]
         public IActionResult UploadFiles(List<IFormFile> files)
         {
