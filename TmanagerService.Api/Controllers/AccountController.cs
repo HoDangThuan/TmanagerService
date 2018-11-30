@@ -53,8 +53,11 @@ namespace TmanagerService.Api.Controllers
             var user = await _userManager.FindByNameAsync(loginModel.UserName);
             var company_user = _context.Companys.FirstOrDefault(c => c.Id == user.CompanyId);
 
-            if (!user.IsEnabled || !company_user.Status)
+            if (!user.IsEnabled)
                 return BadRequest("Account is blocked");
+            if (user.Role != RoleValues.Admin.ToDescription() && 
+                company_user != null && !company_user.Status)
+                return BadRequest("Your company is blocked");
 
             var result = await _signInManager.PasswordSignInAsync(loginModel.UserName, loginModel.Password, loginModel.RememberMe, lockoutOnFailure: true);
             if (result.Succeeded)

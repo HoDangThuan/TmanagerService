@@ -33,7 +33,7 @@ namespace TmanagerService.Api.Middleware
             {
                 var dbContext = context.RequestServices.GetService<TmanagerServiceContext>();
                 Company company = dbContext.Companys.FirstOrDefault(c => c.Id == curUser.CompanyId);
-                if (!curUser.IsEnabled || !company.Status)
+                if (!curUser.IsEnabled || (company != null && !company.Status))
                 {
                     await signInManager.SignOutAsync();
                     context.Response.StatusCode = (int)HttpStatusCode.Forbidden;
